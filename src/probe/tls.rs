@@ -124,7 +124,10 @@ pub async fn attempt(
         .filter_map(|cert| sig_alg_from_der(cert.as_ref()))
         .collect();
 
-    let Some(leaf) = conn.peer_certificates().and_then(|chain| chain.first().cloned()) else {
+    let Some(leaf) = conn
+        .peer_certificates()
+        .and_then(|chain| chain.first().cloned())
+    else {
         return Err(Failure::ClosedNoCert("no certificate served".to_string()));
     };
     let served = served_cert_from_der(leaf.as_ref())
@@ -148,8 +151,8 @@ pub fn openssl_attempt(
         None => return Err("host unresolved".to_string()),
     };
 
-    let stream = std::net::TcpStream::connect_timeout(&addr, timeout)
-        .map_err(|e| format!("tcp: {e}"))?;
+    let stream =
+        std::net::TcpStream::connect_timeout(&addr, timeout).map_err(|e| format!("tcp: {e}"))?;
     stream
         .set_read_timeout(Some(timeout))
         .map_err(|e| format!("tcp: {e}"))?;
@@ -171,7 +174,9 @@ pub fn openssl_attempt(
     config.set_use_server_name_indication(true);
     config.set_verify_hostname(false);
 
-    let tls = config.connect(host, stream).map_err(|e| format!("tls: {e}"))?;
+    let tls = config
+        .connect(host, stream)
+        .map_err(|e| format!("tls: {e}"))?;
     let ssl = tls.ssl();
 
     let negotiated = Negotiated {
@@ -196,7 +201,8 @@ pub fn openssl_attempt(
         .peer_certificate()
         .ok_or_else(|| "connected, no certificate".to_string())?;
     let der = cert.to_der().map_err(|e| e.to_string())?;
-    let served = served_cert_from_der(&der).ok_or_else(|| "certificate parse failed".to_string())?;
+    let served =
+        served_cert_from_der(&der).ok_or_else(|| "certificate parse failed".to_string())?;
     Ok((served_with_chain_sigs(served, chain_sigs), negotiated))
 }
 
@@ -216,17 +222,14 @@ pub fn served_cert_from_der(der: &[u8]) -> Option<ServedCert> {
     let (_, cert) = x509_parser::parse_x509_certificate(der).ok()?;
 
     let serial = ct::serial_norm(&hex_lower(cert.raw_serial()));
-    let pubkey_alg = Some(oid_name(
-        &cert.subject_pki.algorithm.algorithm,
-        PUBKEY_OIDS,
-    ));
-    let sig_alg = Some(oid_name(
-        &cert.signature_algorithm.algorithm,
-        SIG_OIDS,
-    ));
+    let pubkey_alg = Some(oid_name(&cert.subject_pki.algorithm.algorithm, PUBKEY_OIDS));
+    let sig_alg = Some(oid_name(&cert.signature_algorithm.algorithm, SIG_OIDS));
     let pubkey_curve = curve_from_params(&cert.subject_pki.algorithm.parameters);
-    let cert_signature =
-        live_cert_signature(pubkey_alg.as_deref(), sig_alg.as_deref(), pubkey_curve.clone());
+    let cert_signature = live_cert_signature(
+        pubkey_alg.as_deref(),
+        sig_alg.as_deref(),
+        pubkey_curve.clone(),
+    );
     let issuer = Some(issuer_rfc2253(&cert.issuer));
 
     let validity = cert.validity();
@@ -244,9 +247,7 @@ pub fn served_cert_from_der(der: &[u8]) -> Option<ServedCert> {
                 .general_names
                 .iter()
                 .filter_map(|gn| match gn {
-                    x509_parser::extensions::GeneralName::DNSName(dns) => {
-                        Some(dns.to_string())
-                    }
+                    x509_parser::extensions::GeneralName::DNSName(dns) => Some(dns.to_string()),
                     _ => None,
                 })
                 .collect()
@@ -331,10 +332,7 @@ fn hex_lower(bytes: &[u8]) -> String {
 /// Signature algorithm name of a DER certificate (shared: leaf + chain scan).
 pub fn sig_alg_from_der(der: &[u8]) -> Option<String> {
     let (_, cert) = x509_parser::parse_x509_certificate(der).ok()?;
-    Some(oid_name(
-        &cert.signature_algorithm.algorithm,
-        SIG_OIDS,
-    ))
+    Some(oid_name(&cert.signature_algorithm.algorithm, SIG_OIDS))
 }
 
 fn served_with_chain_sigs(mut served: ServedCert, chain_sigs: Vec<String>) -> ServedCert {
@@ -351,7 +349,7 @@ fn version_str(v: rustls::ProtocolVersion) -> String {
     }
 }
 
-const PUBKEY_OIDS: &[( &str, &str)] = &[
+const PUBKEY_OIDS: &[(&str, &str)] = &[
     ("1.2.840.113549.1.1.1", "rsaEncryption"),
     ("1.2.840.113549.1.1.10", "rsassaPss"),
     ("1.2.840.10045.2.1", "id-ecPublicKey"),
@@ -423,11 +421,7 @@ fn issuer_rfc2253(name: &x509_parser::x509::X509Name) -> String {
             format!("{key}={value}")
         })
         .collect();
-    parts
-        .into_iter()
-        .rev()
-        .collect::<Vec<_>>()
-        .join(",")
+    parts.into_iter().rev().collect::<Vec<_>>().join(",")
 }
 
 #[cfg(test)]
@@ -440,18 +434,24 @@ mod tests {
     #[test]
     fn extracts_fields_from_der() {
         let pem = TEST_CERT_PEM.trim();
-        let body: String = pem
-            .lines()
-            .filter(|l| !l.starts_with("-----"))
-            .collect();
+        let body: String = pem.lines().filter(|l| !l.starts_with("-----")).collect();
         let der = base64_decode(&body);
         let served = served_cert_from_der(&der).expect("parse test certificate");
 
         assert!(!served.serial.is_empty());
         assert_eq!(served.common_name.as_deref(), Some("test.pq-map.invalid"));
-        assert!(served.identities.contains(&"test.pq-map.invalid".to_string()));
+        assert!(
+            served
+                .identities
+                .contains(&"test.pq-map.invalid".to_string())
+        );
         assert_eq!(served.pubkey_alg.as_deref(), Some("rsaEncryption"));
-        assert!(served.sig_alg.as_deref().is_some_and(|s| s.contains("sha256")));
+        assert!(
+            served
+                .sig_alg
+                .as_deref()
+                .is_some_and(|s| s.contains("sha256"))
+        );
         assert_eq!(served.cert_signature.as_deref(), Some("RSA-SHA256"));
         assert!(served.not_before.is_some());
         assert!(served.not_after.is_some());
@@ -474,7 +474,8 @@ mod tests {
     }
 
     fn base64_decode(input: &str) -> Vec<u8> {
-        const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        const TABLE: &[u8; 64] =
+            b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
         let mut out = Vec::new();
         let mut buf = 0u32;
         let mut bits = 0u32;

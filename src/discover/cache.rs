@@ -24,7 +24,11 @@ pub fn cache_dir() -> PathBuf {
         .ok()
         .filter(|s| !s.is_empty())
         .map(PathBuf::from)
-        .or_else(|| std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".cache")));
+        .or_else(|| {
+            std::env::var("HOME")
+                .ok()
+                .map(|h| PathBuf::from(h).join(".cache"))
+        });
     base.unwrap_or_else(std::env::temp_dir)
         .join("pq-map")
         .join("ct")
@@ -98,7 +102,9 @@ mod tests {
         fs::write(path, body).unwrap();
         let f = File::options().write(true).open(path).unwrap();
         f.set_times(
-            std::fs::FileTimes::new().set_accessed(mtime).set_modified(mtime),
+            std::fs::FileTimes::new()
+                .set_accessed(mtime)
+                .set_modified(mtime),
         )
         .unwrap();
     }
@@ -167,7 +173,10 @@ mod tests {
         store_snapshot(&file, &snapshot).unwrap();
         let loaded = load_snapshot(&file).unwrap();
         assert_eq!(loaded.source, "db");
-        assert_eq!(loaded.certs[0].cert_signature.as_deref(), Some("RSA-SHA256"));
+        assert_eq!(
+            loaded.certs[0].cert_signature.as_deref(),
+            Some("RSA-SHA256")
+        );
         assert_eq!(loaded.certs[0].ct_ids, vec![7]);
         fs::remove_file(&file).unwrap();
     }

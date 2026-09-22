@@ -26,7 +26,11 @@ fn cache_dir() -> PathBuf {
         .ok()
         .filter(|s| !s.is_empty())
         .map(PathBuf::from)
-        .or_else(|| std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".cache")));
+        .or_else(|| {
+            std::env::var("HOME")
+                .ok()
+                .map(|h| PathBuf::from(h).join(".cache"))
+        });
     base.unwrap_or_else(std::env::temp_dir)
         .join("pq-map")
         .join("probe")
@@ -113,6 +117,9 @@ mod tests {
         assert!(!is_fresh(&ep, 86_400, now));
 
         ep.observed_at = None;
-        assert!(!is_fresh(&ep, 86_400, now), "synthesized endpoints never reusable");
+        assert!(
+            !is_fresh(&ep, 86_400, now),
+            "synthesized endpoints never reusable"
+        );
     }
 }
