@@ -128,7 +128,8 @@ cat > "$TMPDIR/index.html" <<'EOF'
   <div id="selection">Full graph</div>
   <button id="hop1" disabled title="Select a node first; then show its direct neighbours">1 hop</button>
   <button id="hop2" disabled title="Select a node first; then show neighbours-of-neighbours">2 hops</button>
-  <button id="reset" class="primary" disabled title="Restore the complete graph">Expand all</button>
+  <button id="back" class="primary" hidden title="Return to the full graph and restore the view from before drill-down">Back</button>
+  <button id="resetView" title="Return to the full graph and restore the initial view">Reset view</button>
 </div>
 
 <script type="module">
@@ -854,21 +855,24 @@ Graph.onLinkHover(link => {
  * INVESTIGATION MODE
  *
  * Click a node to isolate its 1-hop / 2-hop neighbourhood.
- * Expand all restores the complete graph.
+ * Back restores the full graph and the camera position from before drill-down.
+ * Reset view restores the full graph and the initial/default camera.
  * --------------------------------------------------------- */
 
 let browsingCamera = null;
+let initialCamera = null;
 
 const hop1Button = document.getElementById("hop1");
 const hop2Button = document.getElementById("hop2");
-const resetButton = document.getElementById("reset");
+const backButton = document.getElementById("back");
+const resetViewButton = document.getElementById("resetView");
 const selectionLabel = document.getElementById("selection");
 
-function saveBrowsingCamera() {
+function captureCamera() {
   const camera = Graph.camera();
   const controls = Graph.controls();
 
-  browsingCamera = {
+  return {
     position: {
       x: camera.position.x,
       y: camera.position.y,
@@ -880,6 +884,22 @@ function saveBrowsingCamera() {
       z: controls.target.z
     }
   };
+}
+
+function saveBrowsingCamera() {
+  browsingCamera = captureCamera();
+}
+
+function restoreCamera(saved, duration = 700) {
+  if (!saved) return;
+
+  requestAnimationFrame(() => {
+    Graph.cameraPosition(
+      saved.position,
+      saved.target,
+      duration
+    );
+  });
 }
 
 function collectNeighborhood(startId, depth) {
@@ -930,7 +950,7 @@ function updateControls() {
 
   hop1Button.disabled = !investigating;
   hop2Button.disabled = !investigating;
-  resetButton.disabled = !investigating;
+  backButton.hidden = !investigating;
 
   // A hop button is active only when a node is actually isolated.
   // This avoids the misleading initial state "1 hop" + full graph.
@@ -970,30 +990,37 @@ function showNeighborhood(nodeId) {
   fitCurrentGraph(550, 65);
 }
 
-function showAll() {
-  const saved = browsingCamera;
-
+function leaveInvestigation() {
   selectedNodeId = null;
   highlightLinks.clear();
 
   Graph.graphData(fullData);
   refreshSelection();
   updateControls();
+}
 
+function goBack() {
+  const saved = browsingCamera;
+
+  leaveInvestigation();
+  browsingCamera = null;
+
+  // Return to exactly where the user was browsing before drill-down.
   if (saved) {
-    browsingCamera = null;
+    restoreCamera(saved, 700);
+  }
+}
 
-    // Restore the exact camera position and OrbitControls target
-    // from before investigation mode. Do not zoomToFit here.
-    requestAnimationFrame(() => {
-      Graph.cameraPosition(
-        saved.position,
-        saved.target,
-        700
-      );
-    });
+function resetView() {
+  leaveInvestigation();
+  browsingCamera = null;
+
+  // Reset means the initial/default full-graph view, not the
+  // last browsing position.
+  if (initialCamera) {
+    restoreCamera(initialCamera, 800);
   } else {
-    fitCurrentGraph(650, 70);
+    fitCurrentGraph(800, 70);
   }
 }
 
@@ -1030,14 +1057,19 @@ hop2Button.addEventListener("click", event => {
   }
 });
 
-resetButton.addEventListener("click", event => {
+backButton.addEventListener("click", event => {
   event.stopPropagation();
-  showAll();
+  goBack();
+});
+
+resetViewButton.addEventListener("click", event => {
+  event.stopPropagation();
+  resetView();
 });
 
 window.addEventListener("keydown", event => {
   if (event.key === "Escape" && selectedNodeId) {
-    showAll();
+    goBack();
   }
 });
 
@@ -1050,6 +1082,12 @@ updateControls();
 
 setTimeout(() => {
   Graph.zoomToFit(900, 70);
+
+  // zoomToFit animates. Capture the resulting camera only after
+  // the initial transition has settled; Reset view returns here.
+  setTimeout(() => {
+    initialCamera = captureCamera();
+  }, 1000);
 }, 1800);
 
 </script>
