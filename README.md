@@ -4,12 +4,7 @@ discovery and mapping of externally visible cryptographic identities and service
 
 CT estate (crt.sh certwatch DB → HTTP fallback → cache) → DNS discovery (SRV/SVCB/HTTPS, A/AAAA) → live TLS probe (rustls PQ-first, openssl fallback) → correlated text / JSON / graph output.
 
-## Build
-
-```
-cargo build --release    # rust 1.85+, libssl-dev
-cargo test
-```
+![pq-map graph](graph.png)
 
 ## Usage
 
@@ -50,6 +45,13 @@ Caches in `~/.cache/pq-map/`: CT 7 days, probes 24 hours. DNS resolves every run
 - `DNS_TIMEOUT=5`
 - `DNS_ATTEMPTS=2`
 - `DNS_CONCURRENCY=32`
+
+## Build
+
+```
+cargo build --release    # rust 1.85+, libssl-dev
+cargo test
+```
 
 ## License
 
