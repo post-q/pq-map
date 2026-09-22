@@ -1,0 +1,31 @@
+[package]
+name = "pq-map"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Domain service and cryptography discovery from Certificate Transparency and DNS"
+license = "EUPL-1.2"
+
+[lib]
+name = "pq_map"
+path = "src/lib.rs"
+
+[[bin]]
+name = "pq-map"
+path = "src/main.rs"
+
+[dependencies]
+ureq = "2"
+tokio-postgres = "0.7"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "2"
+openssl = "0.10"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "time", "sync", "io-util"] }
+hickory-resolver = { version = "0.24", features = ["system-config"] }
+hickory-proto = "0.24"
+rustls = { version = "0.23", features = ["aws-lc-rs", "prefer-post-quantum"] }
+tokio-rustls = "0.26"
+x509-parser = "0.16"
+futures = "0.3"
