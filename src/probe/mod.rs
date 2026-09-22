@@ -19,18 +19,21 @@ pub enum Failure {
 /// Probe one endpoint within PROBE_TIMEOUT: rustls first, OpenSSL fallback
 /// only for handshake-class failures (parity with ct-inv2.sh --probe).
 pub async fn probe_one(host: &str, ip: Option<IpAddr>, port: u16, cfg: &Config) -> Endpoint {
-    let mut endpoint = match tokio::time::timeout(cfg.probe_timeout, tls::attempt(host, ip, port, cfg)).await {
-        Err(_) => Endpoint::failed(ProbeStatus::Timeout { secs: cfg.probe_timeout.as_secs() }),
-        Ok(Ok((served, negotiated))) => Endpoint {
-            status: ProbeStatus::Ok,
-            ip,
-            served: Some(served),
-            served_not_in_ct: false,
-            negotiated: Some(negotiated),
-            observed_at: None,
-        },
-        Ok(Err(failure)) => handle_failure(host, ip, port, cfg, failure).await,
-    };
+    let mut endpoint =
+        match tokio::time::timeout(cfg.probe_timeout, tls::attempt(host, ip, port, cfg)).await {
+            Err(_) => Endpoint::failed(ProbeStatus::Timeout {
+                secs: cfg.probe_timeout.as_secs(),
+            }),
+            Ok(Ok((served, negotiated))) => Endpoint {
+                status: ProbeStatus::Ok,
+                ip,
+                served: Some(served),
+                served_not_in_ct: false,
+                negotiated: Some(negotiated),
+                observed_at: None,
+            },
+            Ok(Err(failure)) => handle_failure(host, ip, port, cfg, failure).await,
+        };
     endpoint.ip = ip;
     if endpoint.observed_at.is_none() {
         endpoint.observed_at = Some(chrono::Utc::now());
@@ -48,7 +51,9 @@ async fn handle_failure(
     match failure {
         Failure::TcpRefused => Endpoint::failed(ProbeStatus::TcpRefused),
         Failure::TcpUnreachable => Endpoint::failed(ProbeStatus::TcpUnreachable),
-        Failure::Timeout => Endpoint::failed(ProbeStatus::Timeout { secs: cfg.probe_timeout.as_secs() }),
+        Failure::Timeout => Endpoint::failed(ProbeStatus::Timeout {
+            secs: cfg.probe_timeout.as_secs(),
+        }),
         Failure::ClosedNoCert(_) => Endpoint::failed(ProbeStatus::ConnectedNoCert),
         Failure::Unknown(reason) => Endpoint::failed(ProbeStatus::Unknown { reason }),
         Failure::Handshake(_) => openssl_fallback(host, ip, port, cfg).await,
@@ -65,8 +70,12 @@ async fn openssl_fallback(host: &str, ip: Option<IpAddr>, port: u16, cfg: &Confi
     .await;
 
     match outcome {
-        Err(_) => Endpoint::failed(ProbeStatus::Timeout { secs: timeout.as_secs() }),
-        Ok(Err(join)) => Endpoint::failed(ProbeStatus::Unknown { reason: join.to_string() }),
+        Err(_) => Endpoint::failed(ProbeStatus::Timeout {
+            secs: timeout.as_secs(),
+        }),
+        Ok(Err(join)) => Endpoint::failed(ProbeStatus::Unknown {
+            reason: join.to_string(),
+        }),
         Ok(Ok(Ok((served, negotiated)))) => Endpoint {
             status: ProbeStatus::Ok,
             ip,

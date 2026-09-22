@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::Serialize;
 
-use crate::model::{cert_key_name, DomainState, Host, MatchKind, ProbeStatus};
+use crate::model::{DomainState, Host, MatchKind, ProbeStatus, cert_key_name};
 
 #[derive(Debug, Serialize)]
 struct Node {
@@ -232,12 +232,24 @@ pub fn graph(state: &DomainState) -> String {
         }
 
         if let Some((cert, cert_edge)) = host_cert(state, host) {
-            node(&mut nodes, &cert.id, cert.label.clone(), "pki", "certificate");
+            node(
+                &mut nodes,
+                &cert.id,
+                cert.label.clone(),
+                "pki",
+                "certificate",
+            );
             links.insert((host_id.clone(), cert.id.clone(), cert_edge));
 
             if let Some(sig) = cert.cert_signature {
                 let id = format!("certsig:{sig}");
-                node(&mut nodes, &id, sig.clone(), "crypto", "certificate_signature");
+                node(
+                    &mut nodes,
+                    &id,
+                    sig.clone(),
+                    "crypto",
+                    "certificate_signature",
+                );
                 links.insert((cert.id.clone(), id, "cert_signature"));
             }
             if let Some(key) = cert.cert_key {
@@ -264,7 +276,8 @@ pub fn graph(state: &DomainState) -> String {
             })
             .collect(),
     };
-    serde_json::to_string_pretty(&graph).unwrap_or_else(|_| "{\"nodes\":[],\"links\":[]}".to_string())
+    serde_json::to_string_pretty(&graph)
+        .unwrap_or_else(|_| "{\"nodes\":[],\"links\":[]}".to_string())
 }
 
 #[cfg(test)]
@@ -295,13 +308,41 @@ mod tests {
         let state = fixture();
         let json = graph(&state);
         let e = edges(&json);
-        assert!(e.contains(&("host:www.nbp.pl".to_string(), "negotiated_kx".to_string(), "kx:X25519MLKEM768".to_string())));
-        assert!(e.contains(&("host:www.nbp.pl".to_string(), "symmetric_cipher".to_string(), "cipher:AES256-GCM".to_string())));
-        assert!(e.contains(&("host:www.nbp.pl".to_string(), "exposes".to_string(), "service:tcp/443".to_string())));
-        assert!(e.contains(&("host:www.nbp.pl".to_string(), "presents_certificate".to_string(), "cert:www.nbp.pl:9612296601".to_string())));
-        assert!(e.contains(&("cert:www.nbp.pl:9612296601".to_string(), "cert_signature".to_string(), "certsig:RSA-SHA256".to_string())));
-        assert!(e.contains(&("cert:www.nbp.pl:9612296601".to_string(), "cert_key".to_string(), "certkey:RSA-2048".to_string())));
-        assert!(e.contains(&("cert:www.nbp.pl:9612296601".to_string(), "issued_by".to_string(), "ca:digicert-tls-rsa-sha256-2020-ca-1".to_string())));
+        assert!(e.contains(&(
+            "host:www.nbp.pl".to_string(),
+            "negotiated_kx".to_string(),
+            "kx:X25519MLKEM768".to_string()
+        )));
+        assert!(e.contains(&(
+            "host:www.nbp.pl".to_string(),
+            "symmetric_cipher".to_string(),
+            "cipher:AES256-GCM".to_string()
+        )));
+        assert!(e.contains(&(
+            "host:www.nbp.pl".to_string(),
+            "exposes".to_string(),
+            "service:tcp/443".to_string()
+        )));
+        assert!(e.contains(&(
+            "host:www.nbp.pl".to_string(),
+            "presents_certificate".to_string(),
+            "cert:www.nbp.pl:9612296601".to_string()
+        )));
+        assert!(e.contains(&(
+            "cert:www.nbp.pl:9612296601".to_string(),
+            "cert_signature".to_string(),
+            "certsig:RSA-SHA256".to_string()
+        )));
+        assert!(e.contains(&(
+            "cert:www.nbp.pl:9612296601".to_string(),
+            "cert_key".to_string(),
+            "certkey:RSA-2048".to_string()
+        )));
+        assert!(e.contains(&(
+            "cert:www.nbp.pl:9612296601".to_string(),
+            "issued_by".to_string(),
+            "ca:digicert-tls-rsa-sha256-2020-ca-1".to_string()
+        )));
         assert!(!e.iter().any(|(_, l, _)| l == "uses"));
     }
 
@@ -310,19 +351,46 @@ mod tests {
         let state = fixture();
         let json = graph(&state);
         let e = edges(&json);
-        assert!(e.contains(&("host:vpn.nbp.pl".to_string(), "certificate_for".to_string(), "cert:*.nbp.pl:9612297416".to_string())));
-        assert!(e.contains(&("cert:*.nbp.pl:9612297416".to_string(), "cert_signature".to_string(), "certsig:ECDSA-P256".to_string())));
-        assert!(e.contains(&("cert:*.nbp.pl:9612297416".to_string(), "cert_key".to_string(), "certkey:EC-256".to_string())));
-        assert!(e.contains(&("host:old.nbp.pl".to_string(), "certificate_for".to_string(), "cert:*.nbp.pl:9612297416".to_string())));
-        assert!(!e.iter().any(|(s, l, _)| s == "host:vpn.nbp.pl" && *l != "certificate_for"));
+        assert!(e.contains(&(
+            "host:vpn.nbp.pl".to_string(),
+            "certificate_for".to_string(),
+            "cert:*.nbp.pl:9612297416".to_string()
+        )));
+        assert!(e.contains(&(
+            "cert:*.nbp.pl:9612297416".to_string(),
+            "cert_signature".to_string(),
+            "certsig:ECDSA-P256".to_string()
+        )));
+        assert!(e.contains(&(
+            "cert:*.nbp.pl:9612297416".to_string(),
+            "cert_key".to_string(),
+            "certkey:EC-256".to_string()
+        )));
+        assert!(e.contains(&(
+            "host:old.nbp.pl".to_string(),
+            "certificate_for".to_string(),
+            "cert:*.nbp.pl:9612297416".to_string()
+        )));
+        assert!(
+            !e.iter()
+                .any(|(s, l, _)| s == "host:vpn.nbp.pl" && *l != "certificate_for")
+        );
     }
 
     #[test]
     fn exact_cert_match_outranks_the_wildcard() {
         let state = fixture();
         let e = edges(&graph(&state));
-        assert!(e.contains(&("host:eas.nbp.pl".to_string(), "certificate_for".to_string(), "cert:eas.nbp.pl:9612300001".to_string())));
-        assert!(!e.contains(&("host:eas.nbp.pl".to_string(), "certificate_for".to_string(), "cert:*.nbp.pl:9612297416".to_string())));
+        assert!(e.contains(&(
+            "host:eas.nbp.pl".to_string(),
+            "certificate_for".to_string(),
+            "cert:eas.nbp.pl:9612300001".to_string()
+        )));
+        assert!(!e.contains(&(
+            "host:eas.nbp.pl".to_string(),
+            "certificate_for".to_string(),
+            "cert:*.nbp.pl:9612297416".to_string()
+        )));
     }
 
     #[test]
@@ -341,9 +409,16 @@ mod tests {
         sorted.dedup();
         assert_eq!(ids.len(), sorted.len(), "duplicate node ids in {ids:?}");
         assert_eq!(ids.iter().filter(|i| **i == "service:tcp/443").count(), 1);
-        assert_eq!(ids.iter().filter(|i| **i == "cert:www.nbp.pl:9612296601").count(), 1);
         assert_eq!(
-            ids.iter().filter(|i| **i == "ca:digicert-tls-rsa-sha256-2020-ca-1").count(),
+            ids.iter()
+                .filter(|i| **i == "cert:www.nbp.pl:9612296601")
+                .count(),
+            1
+        );
+        assert_eq!(
+            ids.iter()
+                .filter(|i| **i == "ca:digicert-tls-rsa-sha256-2020-ca-1")
+                .count(),
             1
         );
     }

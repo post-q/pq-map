@@ -59,7 +59,8 @@ pub async fn discover(domain: &str, resolver: &TokioAsyncResolver) -> DnsDiscove
             }
         }
     }
-    out.srv.sort_by(|a, b| (&a.fqdn, a.priority).cmp(&(&b.fqdn, b.priority)));
+    out.srv
+        .sort_by(|a, b| (&a.fqdn, a.priority).cmp(&(&b.fqdn, b.priority)));
 
     for rr in [RecordType::SVCB, RecordType::HTTPS] {
         let rr_name = rr_name(rr);
@@ -132,7 +133,12 @@ pub fn rr_from_record(rr_type: &str, record: &Record) -> Option<HttpsRecord> {
     })
 }
 
-fn params_string(params: &[(hickory_proto::rr::rdata::svcb::SvcParamKey, hickory_proto::rr::rdata::svcb::SvcParamValue)]) -> String {
+fn params_string(
+    params: &[(
+        hickory_proto::rr::rdata::svcb::SvcParamKey,
+        hickory_proto::rr::rdata::svcb::SvcParamValue,
+    )],
+) -> String {
     use hickory_proto::rr::rdata::svcb::SvcParamValue;
     params
         .iter()
@@ -143,7 +149,6 @@ fn params_string(params: &[(hickory_proto::rr::rdata::svcb::SvcParamKey, hickory
         .collect::<Vec<_>>()
         .join(" ")
 }
-
 
 pub fn in_domain(host: &str, domain: &str) -> bool {
     host == domain || host.ends_with(&format!(".{domain}"))
@@ -202,8 +207,6 @@ mod tests {
         let resolver = build_resolver(&cfg);
         assert!(resolver.is_ok());
     }
-
-
 
     #[test]
     fn timeout_is_bounded() {

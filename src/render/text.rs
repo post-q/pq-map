@@ -13,7 +13,12 @@ enum Category {
 }
 
 impl Category {
-    const ALL: [Self; 4] = [Self::Exposed, Self::Resolving, Self::PkiOnly, Self::Unresolved];
+    const ALL: [Self; 4] = [
+        Self::Exposed,
+        Self::Resolving,
+        Self::PkiOnly,
+        Self::Unresolved,
+    ];
 
     fn title(&self) -> &'static str {
         match self {
@@ -66,11 +71,7 @@ pub fn combined(state: &DomainState) -> String {
         if hosts.is_empty() {
             continue;
         }
-        out.push_str(&format!(
-            "\n{} ({})\n",
-            category.title(),
-            hosts.len()
-        ));
+        out.push_str(&format!("\n{} ({})\n", category.title(), hosts.len()));
         out.push_str(&format!(
             "{:<host_w$}{:<service_w$}{}\n",
             "HOST / SERVICE", "SERVICE", "OBSERVED KX"
@@ -108,10 +109,7 @@ pub fn combined(state: &DomainState) -> String {
             } else {
                 rec.fqdn.as_str()
             };
-            out.push_str(&format!(
-                "{:<host_w$}{:<service_w$}\n",
-                fqdn, label_line
-            ));
+            out.push_str(&format!("{:<host_w$}{:<service_w$}\n", fqdn, label_line));
             prev_fqdn = Some(rec.fqdn.as_str());
         }
     }
@@ -205,7 +203,11 @@ pub fn certs(state: &DomainState) -> String {
     ));
     out.push_str(&format!(
         "{:<12}  {:<30}  {:<30}  {:<20}  {}\n",
-        "------------", "------------------------------", "------------------------------", "--------------------", "----------"
+        "------------",
+        "------------------------------",
+        "------------------------------",
+        "--------------------",
+        "----------"
     ));
     for cert in state.certs.values().filter(|c| c.currently_valid) {
         let id = cert
@@ -236,7 +238,7 @@ fn fmt_date(dt: Option<chrono::DateTime<chrono::Utc>>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{fixture, MatchKind};
+    use crate::model::{MatchKind, fixture};
 
     /// Cells of the first table row whose host column starts with `name`.
     fn row_cells(text: &str, name: &str) -> String {
@@ -264,13 +266,19 @@ mod tests {
         for section in ["EXPOSED (2)", "RESOLVING (2)", "PKI-ONLY (1)"] {
             assert!(text.contains(section));
         }
-        assert_eq!(row_cells(&text, "www.nbp.pl"), "www.nbp.pl TLS:443 X25519MLKEM768");
+        assert_eq!(
+            row_cells(&text, "www.nbp.pl"),
+            "www.nbp.pl TLS:443 X25519MLKEM768"
+        );
         assert_eq!(row_cells(&text, "vpn.nbp.pl"), "vpn.nbp.pl - -");
         assert_eq!(row_cells(&text, "old.nbp.pl"), "old.nbp.pl - -");
         assert!(text.contains("_sip._tls.nbp.pl"));
         assert!(text.contains("SIP/TLS → sipdir.online.lync.com:443"));
         // HTTPS records render as table rows, not sections.
-        assert_eq!(last_row_cells(&text, "nbp.pl"), "nbp.pl HTTPS → . alpn=h2,h3");
+        assert_eq!(
+            last_row_cells(&text, "nbp.pl"),
+            "nbp.pl HTTPS → . alpn=h2,h3"
+        );
         assert!(!text.contains("=== "));
     }
 
@@ -303,9 +311,10 @@ mod tests {
     fn wildcard_refs_rendered_by_probe_views() {
         let state = fixture();
         let old = state.hosts.get("old.nbp.pl").unwrap();
-        assert!(old
-            .ct_refs
-            .iter()
-            .any(|r| r.kind == MatchKind::Wildcard && r.serial == "bb22"));
+        assert!(
+            old.ct_refs
+                .iter()
+                .any(|r| r.kind == MatchKind::Wildcard && r.serial == "bb22")
+        );
     }
 }

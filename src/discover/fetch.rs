@@ -73,8 +73,7 @@ pub async fn obtain(domain: &str, cfg: &Config, refresh: bool) -> Result<FetchOu
         .map_err(|_| Error::Join)?;
     match http {
         Ok(body) => {
-            let rows =
-                ct::parse_rows(&body).map_err(|e| Error::CtParse(e.to_string()))?;
+            let rows = ct::parse_rows(&body).map_err(|e| Error::CtParse(e.to_string()))?;
             let certs = ct::certificates(&rows, Utc::now());
             if !certs.is_empty() {
                 store(&file, "http", &certs);
@@ -134,10 +133,7 @@ fn http_obtain(domain: &str, cfg: &Config) -> Result<String, Error> {
                 let (why, delay) = match code {
                     // Rate limited: honor Retry-After when sane, otherwise back
                     // off twice as hard as for plain server errors.
-                    429 => (
-                        "rate limited",
-                        retry_after.unwrap_or(base * 2).min(300),
-                    ),
+                    429 => ("rate limited", retry_after.unwrap_or(base * 2).min(300)),
                     502 | 503 => ("server error", base),
                     _ => ("HTTP error", base),
                 };
@@ -148,7 +144,10 @@ fn http_obtain(domain: &str, cfg: &Config) -> Result<String, Error> {
                     );
                     thread::sleep(Duration::from_secs(delay));
                 } else {
-                    eprintln!("CT: {why} (HTTP {code}); giving up after {} attempts", cfg.retries);
+                    eprintln!(
+                        "CT: {why} (HTTP {code}); giving up after {} attempts",
+                        cfg.retries
+                    );
                 }
             }
             Err(FetchFailure::Other(e)) => {
@@ -182,7 +181,7 @@ fn fetch_once(domain: &str, cfg: &Config) -> Result<String, FetchFailure> {
             return Err(FetchFailure::Status(code, retry_after));
         }
         Err(ureq::Error::Transport(t)) => {
-            return Err(FetchFailure::Other(format!("crt.sh request failed: {t}")))
+            return Err(FetchFailure::Other(format!("crt.sh request failed: {t}")));
         }
     };
     let mut reader = response.into_reader().take(256 * 1024 * 1024);
@@ -201,10 +200,7 @@ fn store(file: &std::path::Path, source: &str, certs: &BTreeMap<String, Certific
         certs: certs.values().cloned().collect(),
     };
     match cache::store_snapshot(file, &snapshot) {
-        Ok(()) => eprintln!(
-            "CT: snapshot cached (source {source}): {}",
-            file.display()
-        ),
+        Ok(()) => eprintln!("CT: snapshot cached (source {source}): {}", file.display()),
         Err(e) => eprintln!("CT: caching failed: {e}"),
     }
 }
