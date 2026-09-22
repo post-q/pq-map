@@ -105,10 +105,11 @@ async fn attempt_once(domain: &str, cfg: &Config) -> Result<Vec<DbRow>, String> 
         cfg.db_host, cfg.db_port, cfg.db_user, cfg.db_name
     );
     let connect = tokio_postgres::connect(&conninfo, NoTls);
-    let (client, connection) = tokio::time::timeout(Duration::from_secs(cfg.db_connect_timeout), connect)
-        .await
-        .map_err(|_| "connect timeout".to_string())?
-        .map_err(db_err)?;
+    let (client, connection) =
+        tokio::time::timeout(Duration::from_secs(cfg.db_connect_timeout), connect)
+            .await
+            .map_err(|_| "connect timeout".to_string())?
+            .map_err(db_err)?;
     let drive = tokio::spawn(async move {
         if let Err(e) = connection.await {
             eprintln!("CT: db connection dropped: {}", db_err(e));

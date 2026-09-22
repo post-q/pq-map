@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 
-use crate::model::{cert_signature_from_db, Certificate, CertRef, MatchKind};
+use crate::model::{CertRef, Certificate, MatchKind, cert_signature_from_db};
 
 use super::ctdb::DbRow;
 
@@ -226,7 +226,12 @@ pub fn certificates_from_db(rows: &[DbRow], now: DateTime<Utc>) -> BTreeMap<Stri
         if serial == "0" {
             continue;
         }
-        let Some(name) = row.dns_name.as_deref().map(str::trim).filter(|n| !n.is_empty()) else {
+        let Some(name) = row
+            .dns_name
+            .as_deref()
+            .map(str::trim)
+            .filter(|n| !n.is_empty())
+        else {
             continue;
         };
         let name = name.to_lowercase();
@@ -310,11 +315,23 @@ mod tests {
 
     #[test]
     fn ctdate_appends_zone_when_missing() {
-        assert_eq!(ctdate("2014-04-23T12:16:09").unwrap(), utc("2014-04-23T12:16:09Z"));
-        assert_eq!(ctdate("2014-04-23 12:16:09").unwrap(), utc("2014-04-23T12:16:09Z"));
+        assert_eq!(
+            ctdate("2014-04-23T12:16:09").unwrap(),
+            utc("2014-04-23T12:16:09Z")
+        );
+        assert_eq!(
+            ctdate("2014-04-23 12:16:09").unwrap(),
+            utc("2014-04-23T12:16:09Z")
+        );
         // certwatch DB ::text shape: naive, no zone suffix.
-        assert_eq!(ctdate("2026-05-27 00:00:00").unwrap(), utc("2026-05-27T00:00:00Z"));
-        assert_eq!(ctdate("2014-04-23T12:16:09Z").unwrap(), utc("2014-04-23T12:16:09Z"));
+        assert_eq!(
+            ctdate("2026-05-27 00:00:00").unwrap(),
+            utc("2026-05-27T00:00:00Z")
+        );
+        assert_eq!(
+            ctdate("2014-04-23T12:16:09Z").unwrap(),
+            utc("2014-04-23T12:16:09Z")
+        );
         assert_eq!(
             ctdate("2014-04-23T12:16:09+02:00").unwrap(),
             utc("2014-04-23T10:16:09Z")

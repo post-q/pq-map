@@ -154,11 +154,8 @@ pub struct Negotiated {
 
 impl ServedCert {
     pub fn into_certificate(self) -> Certificate {
-        let currently_valid = crate::discover::ct::currently_valid(
-            self.not_before,
-            self.not_after,
-            Utc::now(),
-        );
+        let currently_valid =
+            crate::discover::ct::currently_valid(self.not_before, self.not_after, Utc::now());
         Certificate {
             serial: self.serial,
             in_ct: false,
@@ -278,8 +275,9 @@ pub fn cert_key_name(
 ) -> Option<String> {
     let class = alg_class_of(alg?);
     if class == "ECDSA" {
-        let bits = key_size
-            .or_else(|| curve.and_then(|c| c.trim().trim_start_matches(['P', 'p', '-']).parse().ok()));
+        let bits = key_size.or_else(|| {
+            curve.and_then(|c| c.trim().trim_start_matches(['P', 'p', '-']).parse().ok())
+        });
         return Some(match bits {
             Some(b) => format!("EC-{b}"),
             None => "EC".to_string(),
@@ -633,7 +631,10 @@ mod tests {
             cert_signature_name("id-ecPublicKey", Some("ecdsa-with-SHA384"), Some("P384")),
             Some("ECDSA-P384".to_string())
         );
-        assert_eq!(cert_signature_name("Ed25519", None, None), Some("Ed25519".to_string()));
+        assert_eq!(
+            cert_signature_name("Ed25519", None, None),
+            Some("Ed25519".to_string())
+        );
         assert_eq!(
             cert_signature_name("ML-DSA-65", None, None),
             Some("ML-DSA-65".to_string())
@@ -676,7 +677,10 @@ mod tests {
             cert_key_name(Some("id-ecPublicKey"), None, Some("P521")),
             Some("EC-521".to_string())
         );
-        assert_eq!(cert_key_name(Some("RSA"), None, None), Some("RSA".to_string()));
+        assert_eq!(
+            cert_key_name(Some("RSA"), None, None),
+            Some("RSA".to_string())
+        );
         assert_eq!(
             cert_key_name(Some("Ed25519"), None, None),
             Some("Ed25519".to_string())

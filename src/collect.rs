@@ -67,19 +67,18 @@ pub async fn collect(domain: &str, cfg: &Config, opts: &Options) -> Result<Domai
     }
 
     // 5. Resolve every host concurrently, capturing the response status.
-    let resolution: Vec<(String, Option<IpAddr>, DnsStatus)> = futures::stream::iter(
-        hosts.keys().map(|name| {
+    let resolution: Vec<(String, Option<IpAddr>, DnsStatus)> =
+        futures::stream::iter(hosts.keys().map(|name| {
             let resolver = resolver.clone();
             let name = name.clone();
             async move {
                 let (ip, status) = resolve::resolve_status(&resolver, &name).await;
                 (name, ip, status)
             }
-        }),
-    )
-    .buffer_unordered(cfg.dns_concurrency)
-    .collect()
-    .await;
+        }))
+        .buffer_unordered(cfg.dns_concurrency)
+        .collect()
+        .await;
 
     for (name, ip, status) in &resolution {
         let host = hosts.get_mut(name).expect("host from map");
@@ -135,8 +134,8 @@ pub async fn collect(domain: &str, cfg: &Config, opts: &Options) -> Result<Domai
             if hit {
                 cached_n += 1;
                 if let Some(t) = endpoint.observed_at {
-                    oldest_cached_secs = oldest_cached_secs
-                        .max((now - t).num_seconds().max(0) as u64);
+                    oldest_cached_secs =
+                        oldest_cached_secs.max((now - t).num_seconds().max(0) as u64);
                 }
             } else {
                 fresh_n += 1;
@@ -254,9 +253,18 @@ mod tests {
     #[test]
     fn ct_stats_counts_grouped_certs() {
         let mut certs = BTreeMap::new();
-        certs.insert("aa11".to_string(), cert("aa11", "2026-01-01T00:00:00Z", "2027-01-01T00:00:00Z"));
-        certs.insert("bb22".to_string(), cert("bb22", "2027-06-01T00:00:00Z", "2028-01-01T00:00:00Z"));
-        certs.insert("cc33".to_string(), cert("cc33", "2020-01-01T00:00:00Z", "2021-01-01T00:00:00Z"));
+        certs.insert(
+            "aa11".to_string(),
+            cert("aa11", "2026-01-01T00:00:00Z", "2027-01-01T00:00:00Z"),
+        );
+        certs.insert(
+            "bb22".to_string(),
+            cert("bb22", "2027-06-01T00:00:00Z", "2028-01-01T00:00:00Z"),
+        );
+        certs.insert(
+            "cc33".to_string(),
+            cert("cc33", "2020-01-01T00:00:00Z", "2021-01-01T00:00:00Z"),
+        );
         let stats = ct_stats(&certs);
         assert_eq!(stats.rows, 3);
         assert_eq!(stats.valid, 1);
