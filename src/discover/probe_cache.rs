@@ -5,17 +5,19 @@ use std::path::PathBuf;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::model::Endpoint;
+use crate::model::{Endpoint, PortScan};
 
 use super::cache;
 
-pub const SNAPSHOT_VERSION: u32 = 1;
+pub const SNAPSHOT_VERSION: u32 = 2;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Snapshot {
     pub version: u32,
     pub fetched_at: DateTime<Utc>,
     pub probes: BTreeMap<String, Endpoint>,
+    #[serde(default)]
+    pub ports: BTreeMap<String, BTreeMap<u16, PortScan>>,
 }
 
 fn cache_dir() -> PathBuf {
@@ -46,11 +48,16 @@ pub fn load(domain: &str) -> Option<Snapshot> {
     (snap.version == SNAPSHOT_VERSION).then_some(snap)
 }
 
-pub fn store(domain: &str, probes: &BTreeMap<String, Endpoint>) {
+pub fn store(
+    domain: &str,
+    probes: &BTreeMap<String, Endpoint>,
+    ports: &BTreeMap<String, BTreeMap<u16, PortScan>>,
+) {
     let snapshot = Snapshot {
         version: SNAPSHOT_VERSION,
         fetched_at: Utc::now(),
         probes: probes.clone(),
+        ports: ports.clone(),
     };
     let Ok(body) = serde_json::to_string_pretty(&snapshot) else {
         eprintln!("probes: caching failed: serialization error");
@@ -76,6 +83,15 @@ pub fn is_fresh(endpoint: &Endpoint, ttl: u64, now: DateTime<Utc>) -> bool {
         .unwrap_or(false)
 }
 
+pub fn scan_fresh(scan: &PortScan, ttl: u64, now: DateTime<Utc>) -> bool {
+    is_fresh_time(scan.observed_at, ttl, now)
+}
+
+fn is_fresh_time(t: Option<DateTime<Utc>>, ttl: u64, now: DateTime<Utc>) -> bool {
+    t.map(|t| ((now - t).num_seconds().max(0) as u64) <= ttl)
+        .unwrap_or(false)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -96,11 +112,29 @@ mod tests {
         let mut probes = BTreeMap::new();
         probes.insert("vpn.nbp.pl".to_string(), timeout_endpoint());
 
-        store("roundtrip.nbp.pl", &probes);
+        let mut ports = BTreeMap::new();
+        let mut scans = BTreeMap::new();
+        scans.insert(
+            465u16,
+            crate::model::PortScan {
+                port: 465,
+                state: crate::model::ScanState::Open,
+                served: None,
+                negotiated: None,
+                observed_at: Some(Utc::now()),
+            },
+        );
+        ports.insert("mx1.nbp.pl".to_string(), scans);
+
+        store("roundtrip.nbp.pl", &probes, &ports);
         let loaded = load("roundtrip.nbp.pl").expect("snapshot loads");
         let ep = loaded.probes.get("vpn.nbp.pl").unwrap();
         assert_eq!(ep.status, ProbeStatus::Timeout { secs: 8 });
         assert!(is_fresh(ep, 86_400, Utc::now()));
+        let scans = loaded.ports.get("mx1.nbp.pl").unwrap();
+        let scan = scans.get(&465).unwrap();
+        assert_eq!(scan.state, crate::model::ScanState::Open);
+        assert!(scan_fresh(scan, 86_400, Utc::now()));
 
         fs::remove_dir_all(&dir).unwrap();
         unsafe { std::env::remove_var("PROBE_CACHE_DIR") };

@@ -144,8 +144,6 @@ pub fn openssl_attempt(
     port: u16,
     timeout: Duration,
 ) -> Result<(ServedCert, Negotiated), String> {
-    use openssl::ssl::{SslConnector, SslMethod, SslVerifyMode, SslVersion};
-
     let addr = match ip {
         Some(ip) => SocketAddr::from((ip, port)),
         None => return Err("host unresolved".to_string()),
@@ -159,6 +157,72 @@ pub fn openssl_attempt(
     stream
         .set_write_timeout(Some(timeout))
         .map_err(|e| format!("tcp: {e}"))?;
+    tls_over_stream(host, stream)
+}
+
+pub fn openssl_starttls_smtp(
+    host: &str,
+    ip: Option<IpAddr>,
+    port: u16,
+    timeout: Duration,
+) -> Result<(ServedCert, Negotiated), String> {
+    let addr = match ip {
+        Some(ip) => SocketAddr::from((ip, port)),
+        None => return Err("host unresolved".to_string()),
+    };
+
+    let mut stream =
+        std::net::TcpStream::connect_timeout(&addr, timeout).map_err(|e| format!("tcp: {e}"))?;
+    stream
+        .set_read_timeout(Some(timeout))
+        .map_err(|e| format!("tcp: {e}"))?;
+    stream
+        .set_write_timeout(Some(timeout))
+        .map_err(|e| format!("tcp: {e}"))?;
+
+    use std::io::{BufRead, BufReader, Write};
+    let mut reader = BufReader::new(stream.try_clone().map_err(|e| format!("tcp: {e}"))?);
+    let mut line = String::new();
+    reader
+        .read_line(&mut line)
+        .map_err(|e| format!("smtp: greeting: {e}"))?;
+    if !line.starts_with("220") {
+        return Err(format!("smtp: unexpected greeting: {line}"));
+    }
+    stream
+        .write_all(b"EHLO pq-map.local\r\n")
+        .map_err(|e| format!("smtp: ehlo: {e}"))?;
+    loop {
+        line.clear();
+        reader
+            .read_line(&mut line)
+            .map_err(|e| format!("smtp: ehlo: {e}"))?;
+        if line.starts_with("250 ") {
+            break;
+        }
+        if !line.starts_with("250-") || line.len() > 512 {
+            return Err(format!("smtp: unexpected ehlo reply: {line}"));
+        }
+    }
+    stream
+        .write_all(b"STARTTLS\r\n")
+        .map_err(|e| format!("smtp: starttls: {e}"))?;
+    line.clear();
+    reader
+        .read_line(&mut line)
+        .map_err(|e| format!("smtp: starttls: {e}"))?;
+    if !line.starts_with("220") {
+        return Err(format!("smtp: starttls refused: {line}"));
+    }
+
+    tls_over_stream(host, stream)
+}
+
+fn tls_over_stream(
+    host: &str,
+    stream: std::net::TcpStream,
+) -> Result<(ServedCert, Negotiated), String> {
+    use openssl::ssl::{SslConnector, SslMethod, SslVerifyMode, SslVersion};
 
     let mut builder = SslConnector::builder(SslMethod::tls()).map_err(|e| e.to_string())?;
     builder

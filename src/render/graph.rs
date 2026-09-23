@@ -215,6 +215,15 @@ pub fn graph(state: &DomainState) -> String {
             );
             links.insert((host_id.clone(), "service:tcp/443".to_string(), "exposes"));
         }
+        for scan in &host.ports {
+            if scan.state != crate::model::ScanState::Open {
+                continue;
+            }
+            let id = format!("service:tcp/{}", scan.port);
+            let label = format!("{}:{}", crate::model::port_service(scan.port), scan.port);
+            node(&mut nodes, &id, label, "service", "tcp_service");
+            links.insert((host_id.clone(), id, "exposes"));
+        }
 
         if let Some(negotiated) = host.endpoint.as_ref().and_then(|e| e.negotiated.as_ref()) {
             if let Some(kx) = &negotiated.kx_group {
@@ -448,6 +457,10 @@ mod tests {
         let cipher = find("cipher:AES256-GCM");
         assert_eq!(cipher["type"], "crypto");
         assert_eq!(cipher["group"], "symmetric");
+        let svc = find("service:tcp/465");
+        assert_eq!(svc["type"], "service");
+        assert_eq!(svc["group"], "tcp_service");
+        assert_eq!(svc["label"], "SMTPS:465");
         let cert = find("cert:www.nbp.pl:9612296601");
         assert_eq!(cert["type"], "pki");
         assert_eq!(cert["group"], "certificate");

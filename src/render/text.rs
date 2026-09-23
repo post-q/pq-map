@@ -1,4 +1,4 @@
-use crate::model::{DomainState, Host, ProbeStatus};
+use crate::model::{DomainState, Host, ProbeStatus, ScanState};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Category {
@@ -33,7 +33,8 @@ impl Category {
         if matches!(
             host.endpoint.as_ref().map(|e| &e.status),
             Some(ProbeStatus::Ok)
-        ) {
+        ) || host.ports.iter().any(|p| p.state == ScanState::Open)
+        {
             return Self::Exposed;
         }
         if matches!(
@@ -59,8 +60,9 @@ pub fn combined(state: &DomainState) -> String {
     let host_w = 39
         .max(all.iter().map(|h| h.name.len()).max().unwrap_or(0) + 2)
         .max("HOST / SERVICE".len());
-    let service_w = 11;
-    let kx_w = 16;
+    let service_w = 15;
+    let mx_targets: std::collections::BTreeSet<&str> =
+        state.mx.iter().map(|rec| rec.target.as_str()).collect();
 
     for category in Category::ALL {
         let hosts = all
@@ -72,25 +74,57 @@ pub fn combined(state: &DomainState) -> String {
             continue;
         }
         out.push_str(&format!("\n{} ({})\n", category.title(), hosts.len()));
-        out.push_str(&format!(
-            "{:<host_w$}{:<service_w$}{}\n",
-            "HOST / SERVICE", "SERVICE", "OBSERVED KX"
-        ));
-        for host in ordered(&hosts) {
-            let service = match host.endpoint.as_ref().map(|e| &e.status) {
-                Some(ProbeStatus::Ok) => "TLS:443",
-                _ => "-",
-            };
-            let kx = host
-                .endpoint
-                .as_ref()
-                .and_then(|e| e.negotiated.as_ref())
-                .and_then(|n| n.kx_group.as_deref())
-                .unwrap_or("-");
-            out.push_str(&format!(
-                "{:<host_w$}{:<service_w$}{:<kx_w$}\n",
-                host.name, service, kx
-            ));
+        match category {
+            Category::Exposed => {
+                out.push_str(&format!(
+                    "{:<host_w$}{:<service_w$}{}\n",
+                    "HOST / SERVICE", "SERVICE", "OBSERVED KX"
+                ));
+                for host in ordered(&hosts) {
+                    let mut rows: Vec<(&str, &str)> = Vec::new();
+                    if matches!(
+                        host.endpoint.as_ref().map(|e| &e.status),
+                        Some(ProbeStatus::Ok)
+                    ) {
+                        let kx = host
+                            .endpoint
+                            .as_ref()
+                            .and_then(|e| e.negotiated.as_ref())
+                            .and_then(|n| n.kx_group.as_deref())
+                            .unwrap_or("-");
+                        rows.push(("TLS:443", kx));
+                    }
+                    for scan in &host.ports {
+                        if scan.state != ScanState::Open {
+                            continue;
+                        }
+                        let mut label = crate::model::port_service(scan.port).to_string();
+                        label.push(':');
+                        label.push_str(&scan.port.to_string());
+                        if scan.port == 25 && mx_targets.contains(host.name.as_str()) {
+                            label.push_str("/MX");
+                        }
+                        let kx = scan
+                            .negotiated
+                            .as_ref()
+                            .and_then(|n| n.kx_group.as_deref())
+                            .unwrap_or("-");
+                        rows.push((Box::leak(label.into_boxed_str()), kx));
+                    }
+                    for (service, kx) in rows {
+                        out.push_str(&format!(
+                            "{:<host_w$}{:<service_w$}{}\n",
+                            host.name, service, kx
+                        ));
+                    }
+                }
+            }
+            Category::Resolving | Category::PkiOnly | Category::Unresolved => {
+                out.push_str(&format!("{:<host_w$}\n", "HOST"));
+                for host in ordered(&hosts) {
+                    out.push_str(&format!("{:<host_w$}\n", host.name));
+                }
+            }
         }
     }
 
@@ -112,6 +146,11 @@ pub fn combined(state: &DomainState) -> String {
             out.push_str(&format!("{:<host_w$}{:<service_w$}\n", fqdn, label_line));
             prev_fqdn = Some(rec.fqdn.as_str());
         }
+    }
+
+    for rec in &state.mx {
+        let label_line = format!("MX → {} ({})", rec.target, rec.priority);
+        out.push_str(&format!("{:<host_w$}{:<service_w$}\n", "", label_line));
     }
 
     // SVCB/HTTPS records on the apex, same row shape as SRV.
@@ -165,8 +204,16 @@ pub fn summary(state: &DomainState) -> String {
         }
     }
     let row = |label: &str, value: usize| format!("  {label:<31}{value}\n");
+    let swept: Vec<&crate::model::PortScan> =
+        state.hosts.values().flat_map(|h| h.ports.iter()).collect();
+    let open_ports: usize = swept.iter().filter(|s| s.state == ScanState::Open).count();
+    let open_hosts: usize = state
+        .hosts
+        .values()
+        .filter(|h| h.ports.iter().any(|s| s.state == ScanState::Open))
+        .count();
     format!(
-        "Certificate estate: '{}'\n\n{}{}{}\n{}{}{}",
+        "Certificate estate: '{}'\n\n{}{}{}\n{}{}{}\n{}{}",
         state.domain,
         row("CT certificates:", state.ct_stats.rows),
         row("Currently valid:", state.ct_stats.valid),
@@ -174,6 +221,16 @@ pub fn summary(state: &DomainState) -> String {
         row("Unique identities:", identities.len()),
         row("Concrete hostnames:", concrete.len()),
         row("Wildcard identities:", wildcards.len()),
+        row("Alt-port swept hosts:", swept.len()),
+        if swept.is_empty() {
+            String::new()
+        } else {
+            format!(
+                "{}{}",
+                row("Alt-port open hosts:", open_hosts),
+                row("Alt-port open services:", open_ports)
+            )
+        }
     )
 }
 
@@ -263,18 +320,25 @@ mod tests {
         let text = combined(&state);
 
         assert!(text.starts_with("Discovered names: 5\n"));
-        for section in ["EXPOSED (2)", "RESOLVING (2)", "PKI-ONLY (1)"] {
+        for section in ["EXPOSED (3)", "RESOLVING (1)", "PKI-ONLY (1)"] {
             assert!(text.contains(section));
         }
         assert_eq!(
             row_cells(&text, "www.nbp.pl"),
             "www.nbp.pl TLS:443 X25519MLKEM768"
         );
-        assert_eq!(row_cells(&text, "vpn.nbp.pl"), "vpn.nbp.pl - -");
-        assert_eq!(row_cells(&text, "old.nbp.pl"), "old.nbp.pl - -");
+        assert_eq!(row_cells(&text, "vpn.nbp.pl"), "vpn.nbp.pl");
+        assert_eq!(row_cells(&text, "old.nbp.pl"), "old.nbp.pl");
+        assert_eq!(
+            row_cells(&text, "eas.nbp.pl"),
+            "eas.nbp.pl SMTPS:465 X25519"
+        );
+        assert_eq!(
+            last_row_cells(&text, "eas.nbp.pl"),
+            "eas.nbp.pl SMTP:25/MX X25519"
+        );
         assert!(text.contains("_sip._tls.nbp.pl"));
         assert!(text.contains("SIP/TLS → sipdir.online.lync.com:443"));
-        // HTTPS records render as table rows, not sections.
         assert_eq!(
             last_row_cells(&text, "nbp.pl"),
             "nbp.pl HTTPS → . alpn=h2,h3"

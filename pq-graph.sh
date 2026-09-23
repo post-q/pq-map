@@ -153,7 +153,183 @@ if (!response.ok) {
   throw new Error(`graph.json: HTTP ${response.status}`);
 }
 
-const data = await response.json();
+const canonicalData = await response.json();
+
+/* ---------------------------------------------------------
+ * DISPLAY PROJECTION / HOST COMPACTION
+ *
+ * Keep graph.json lossless. For presentation only, compact the
+ * common pair foo.example + www.foo.example into one HOST node
+ * when both names expose the same observed crypto posture.
+ * Certificate nodes remain distinct and both stay connected to
+ * the compacted host.
+ * --------------------------------------------------------- */
+
+function rawEndpointId(endpoint) {
+  return typeof endpoint === "object" ? endpoint.id : endpoint;
+}
+
+function relationName(link) {
+  return link.label || link.type || "";
+}
+
+function normalizedBaseHost(label) {
+  if (!label) return null;
+  return label.startsWith("www.") ? label.slice(4) : label;
+}
+
+function observedCryptoSignature(hostId, links) {
+  const relevant = new Set([
+    "exposes",
+    "negotiated_kx",
+    "symmetric_cipher"
+  ]);
+
+  const values = [];
+
+  for (const link of links) {
+    const sourceId = rawEndpointId(link.source);
+    const targetId = rawEndpointId(link.target);
+    const relation = relationName(link);
+
+    if (!relevant.has(relation)) continue;
+    if (sourceId !== hostId && targetId !== hostId) continue;
+
+    const otherId = sourceId === hostId ? targetId : sourceId;
+    values.push(`${relation}:${otherId}`);
+  }
+
+  values.sort();
+  return values.join("|");
+}
+
+function certificateLabelsForHost(hostId, links, canonicalNodeById) {
+  const labels = new Set();
+
+  for (const link of links) {
+    const sourceId = rawEndpointId(link.source);
+    const targetId = rawEndpointId(link.target);
+    const relation = relationName(link);
+
+    let certificateId = null;
+
+    if (relation === "presents_certificate" && sourceId === hostId) {
+      certificateId = targetId;
+    } else if (relation === "certificate_for" && targetId === hostId) {
+      certificateId = sourceId;
+    }
+
+    if (!certificateId) continue;
+
+    const cert = canonicalNodeById.get(certificateId);
+    if (cert) labels.add(cert.label || cert.id);
+  }
+
+  return [...labels].sort();
+}
+
+function buildDisplayProjection(canonical) {
+  const canonicalNodeById = new Map(
+    canonical.nodes.map(node => [node.id, node])
+  );
+
+  const hostsByBase = new Map();
+
+  for (const node of canonical.nodes) {
+    if (node.type !== "host") continue;
+
+    const base = normalizedBaseHost(node.label);
+    if (!base) continue;
+
+    if (!hostsByBase.has(base)) hostsByBase.set(base, []);
+    hostsByBase.get(base).push(node);
+  }
+
+  const replacementId = new Map();
+  const aggregateNodes = new Map();
+
+  for (const [base, hosts] of hostsByBase) {
+    const apex = hosts.find(node => node.label === base);
+    const www = hosts.find(node => node.label === `www.${base}`);
+
+    if (!apex || !www) continue;
+
+    const apexSignature = observedCryptoSignature(apex.id, canonical.links);
+    const wwwSignature = observedCryptoSignature(www.id, canonical.links);
+
+    // Only compact when there is actual observed crypto/service data and
+    // the two hostnames are operationally equivalent in this view.
+    if (!apexSignature || apexSignature !== wwwSignature) continue;
+
+    const aggregateId = `host-group:${base}`;
+    const aliases = [apex, www]
+      .sort((a, b) => a.label.localeCompare(b.label))
+      .map(host => ({
+        id: host.id,
+        label: host.label,
+        certificates: certificateLabelsForHost(
+          host.id,
+          canonical.links,
+          canonicalNodeById
+        )
+      }));
+
+    aggregateNodes.set(aggregateId, {
+      ...apex,
+      id: aggregateId,
+      label: base,
+      aliases,
+      memberIds: aliases.map(alias => alias.id),
+      compactedHost: true
+    });
+
+    replacementId.set(apex.id, aggregateId);
+    replacementId.set(www.id, aggregateId);
+  }
+
+  const nodes = [];
+
+  for (const node of canonical.nodes) {
+    const replacement = replacementId.get(node.id);
+
+    if (!replacement) {
+      nodes.push({ ...node });
+      continue;
+    }
+
+    if (!nodes.some(existing => existing.id === replacement)) {
+      nodes.push(aggregateNodes.get(replacement));
+    }
+  }
+
+  const links = [];
+  const seenLinks = new Set();
+
+  for (const link of canonical.links) {
+    const originalSource = rawEndpointId(link.source);
+    const originalTarget = rawEndpointId(link.target);
+    const source = replacementId.get(originalSource) || originalSource;
+    const target = replacementId.get(originalTarget) || originalTarget;
+
+    // A host-pair relation collapsed onto itself carries no information.
+    if (source === target) continue;
+
+    const relation = relationName(link);
+    const key = `${source}\u0000${target}\u0000${relation}`;
+    if (seenLinks.has(key)) continue;
+    seenLinks.add(key);
+
+    links.push({
+      ...link,
+      source,
+      target
+    });
+  }
+
+  return { nodes, links };
+}
+
+const data = buildDisplayProjection(canonicalData);
 
 const nodeById = new Map(
   data.nodes.map(node => [node.id, node])
@@ -661,6 +837,50 @@ const Graph =
     displayLabel(a.node)
       .localeCompare(displayLabel(b.node))
   );
+
+  if (role(node) === "host" && node.compactedHost && node.aliases?.length) {
+    const lines = [
+      `<b>HOST · ${node.label}</b>`,
+      "",
+      `<span style="opacity:.65">[aliases]</span>`
+    ];
+
+    for (const alias of node.aliases) {
+      const certText = alias.certificates?.length
+        ? alias.certificates.join(", ")
+        : "none observed";
+
+      lines.push(
+        `${alias.label} <span style="opacity:.72">(cert: ${certText})</span>`
+      );
+    }
+
+    lines.push("");
+
+    const preferredRelations = [
+      "exposes",
+      "negotiated_kx",
+      "symmetric_cipher"
+    ];
+
+    for (const relation of preferredRelations) {
+      const matching = connections.filter(c => c.relation === relation);
+      const seen = new Set();
+
+      for (const c of matching) {
+        const value = c.node.label || c.node.id;
+        if (seen.has(value)) continue;
+        seen.add(value);
+
+        lines.push(
+          `<span style="opacity:.65">[${relationForPerspective(c.relation, c.outgoing)}]</span> ` +
+          `${value}`
+        );
+      }
+    }
+
+    return lines.join("<br>");
+  }
 
   const lines = [
     `<b>${displayLabel(node)}</b>`,

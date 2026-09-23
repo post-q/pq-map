@@ -17,6 +17,11 @@ pub struct Config {
     pub probe_cache_ttl: u64,
     pub probe_timeout: Duration,
     pub probe_concurrency: usize,
+    pub sweep_connect_timeout: Duration,
+    pub sweep_concurrency: usize,
+    pub sweep_delay_ms: u64,
+    pub sweep_ttl: u64,
+    pub probe_ports: Vec<u16>,
     pub dns_timeout: Duration,
     pub dns_attempts: usize,
     pub dns_concurrency: usize,
@@ -51,6 +56,14 @@ impl Config {
             probe_cache_ttl: var("PROBE_CACHE_TTL", 86_400),
             probe_timeout: Duration::from_secs(var("PROBE_TIMEOUT", 8)),
             probe_concurrency: var("PROBE_CONCURRENCY", 32).max(1) as usize,
+            sweep_connect_timeout: Duration::from_secs(var("SWEEP_CONNECT_TIMEOUT", 1)),
+            sweep_concurrency: var("SWEEP_CONCURRENCY", 4).max(1) as usize,
+            sweep_delay_ms: var("SWEEP_DELAY_MS", 200),
+            sweep_ttl: var("PROBE_SWEEP_TTL", 604_800),
+            probe_ports: env::var("PROBE_PORTS")
+                .ok()
+                .map(|v| v.split(',').filter_map(|p| p.trim().parse().ok()).collect())
+                .unwrap_or_default(),
             dns_timeout: Duration::from_secs(var("DNS_TIMEOUT", 5)),
             dns_attempts: var("DNS_ATTEMPTS", 2).max(1) as usize,
             dns_concurrency: var("DNS_CONCURRENCY", 32).max(1) as usize,
