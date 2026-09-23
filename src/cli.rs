@@ -27,6 +27,9 @@ Modes:
 Options:
   --refresh   force a fresh CT snapshot (bypasses the 7-day cache)
   --no-probe  skip live TLS probing
+  --ports     discover services on alternative ports for hosts whose 443 is
+              closed: family-driven port list (mx -> 465/587/25, mail -> 993/995/
+              465/587, ...) or explicit comma LIST (--ports=80,8443)
   -h, --help  this help
 ";
 
@@ -35,11 +38,25 @@ pub fn run() -> i32 {
     let mut mode = Mode::Combined;
     let mut refresh = false;
     let mut probe = true;
+    let mut ports: Option<Vec<u16>> = None;
 
     for arg in std::env::args().skip(1) {
         match arg.as_str() {
             "--refresh" => refresh = true,
             "--no-probe" => probe = false,
+            "--ports" => ports = Some(Vec::new()),
+            other if other.starts_with("--ports=") => {
+                let list = other
+                    .trim_start_matches("--ports=")
+                    .split(',')
+                    .filter_map(|p| p.trim().parse().ok())
+                    .collect::<Vec<u16>>();
+                if list.is_empty() {
+                    eprintln!("ERROR: --ports=LIST requires a comma-separated port list");
+                    return 2;
+                }
+                ports = Some(list);
+            }
             "--summary" => mode = Mode::Summary,
             "--hosts" => mode = Mode::Hosts,
             "--certs" => mode = Mode::Certs,
@@ -85,7 +102,15 @@ pub fn run() -> i32 {
         }
     };
 
-    match runtime.block_on(collect::collect(&domain, &cfg, &Options { refresh, probe })) {
+    match runtime.block_on(collect::collect(
+        &domain,
+        &cfg,
+        &Options {
+            refresh,
+            probe,
+            ports,
+        },
+    )) {
         Ok(state) => {
             match mode {
                 Mode::Combined => print!("{}", render::text::combined(&state)),

@@ -4,7 +4,7 @@ use hickory_resolver::TokioAsyncResolver;
 use hickory_resolver::system_conf::read_system_conf;
 
 use crate::config::Config;
-use crate::model::{HttpsRecord, SrvRecord};
+use crate::model::{HttpsRecord, MxRecord, SrvRecord};
 
 pub const SRV_SERVICES: &[(&str, &str)] = &[
     ("_ldap._tcp", "LDAP"),
@@ -23,6 +23,7 @@ pub const SRV_SERVICES: &[(&str, &str)] = &[
 pub struct DnsDiscovery {
     pub srv: Vec<SrvRecord>,
     pub https: Vec<HttpsRecord>,
+    pub mx: Vec<MxRecord>,
 }
 
 pub fn service_label(service: &str) -> &str {
@@ -71,6 +72,14 @@ pub async fn discover(domain: &str, resolver: &TokioAsyncResolver) -> DnsDiscove
         }
     }
 
+    for record in query(resolver, domain, RecordType::MX).await {
+        if let Some(rec) = mx_from_record(&record) {
+            out.mx.push(rec);
+        }
+    }
+    out.mx
+        .sort_by(|a, b| (a.priority, a.target.clone()).cmp(&(b.priority, b.target.clone())));
+
     out
 }
 
@@ -116,6 +125,16 @@ pub fn srv_from_record(service: &str, fqdn: &str, record: &Record) -> Option<Srv
         weight: u32::from(srv.weight()),
         port: srv.port(),
         target: strip_dot(&srv.target().to_string()),
+    })
+}
+
+pub fn mx_from_record(record: &Record) -> Option<MxRecord> {
+    let hickory_proto::rr::RData::MX(mx) = record.data()? else {
+        return None;
+    };
+    Some(MxRecord {
+        priority: u32::from(mx.preference()),
+        target: strip_dot(&mx.exchange().to_string()),
     })
 }
 

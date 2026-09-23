@@ -210,6 +210,24 @@ pub struct Host {
     pub ct_refs: Vec<CertRef>,
     pub dns_refs: Vec<DnsRef>,
     pub endpoint: Option<Endpoint>,
+    pub ports: Vec<PortScan>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ScanState {
+    Open,
+    Closed,
+    Filtered,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PortScan {
+    pub port: u16,
+    pub state: ScanState,
+    pub served: Option<ServedCert>,
+    pub negotiated: Option<Negotiated>,
+    pub observed_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -219,6 +237,11 @@ pub struct SrvRecord {
     pub priority: u32,
     pub weight: u32,
     pub port: u16,
+    pub target: String,
+}
+#[derive(Debug, Clone, Serialize)]
+pub struct MxRecord {
+    pub priority: u32,
     pub target: String,
 }
 
@@ -319,6 +342,21 @@ pub fn cert_signature_from_db(
     cert_signature_name(class, sig_hash_algorithm, curve)
 }
 
+pub fn port_service(port: u16) -> &'static str {
+    match port {
+        25 | 587 => "SMTP",
+        465 => "SMTPS",
+        993 => "IMAPS",
+        995 => "POP3S",
+        636 => "LDAPS",
+        5061 => "SIPS",
+        8883 => "MQTTS",
+        5222 => "XMPP",
+        5223 => "XMPPS",
+        _ => "TLS",
+    }
+}
+
 pub fn symmetric_name(cipher: &str) -> Option<String> {
     let upper = cipher.to_ascii_uppercase();
     if upper.contains("CHACHA20") {
@@ -361,6 +399,7 @@ pub struct DomainState {
     pub hosts: BTreeMap<String, Host>,
     pub srv: Vec<SrvRecord>,
     pub https: Vec<HttpsRecord>,
+    pub mx: Vec<MxRecord>,
 }
 
 impl DomainState {
@@ -457,6 +496,7 @@ pub fn fixture() -> DomainState {
             kind: MatchKind::Exact,
         }],
         dns_refs: Vec::new(),
+        ports: Vec::new(),
         endpoint: Some(Endpoint {
             status: ProbeStatus::Ok,
             negotiated: Some(Negotiated {
@@ -496,6 +536,7 @@ pub fn fixture() -> DomainState {
                 kind: MatchKind::Exact,
             }],
             dns_refs: Vec::new(),
+            ports: Vec::new(),
             endpoint: Some(Endpoint {
                 status: ProbeStatus::Ok,
                 ip: Some("104.94.222.1".parse().unwrap()),
@@ -534,6 +575,7 @@ pub fn fixture() -> DomainState {
                 kind: MatchKind::Wildcard,
             }],
             dns_refs: Vec::new(),
+            ports: Vec::new(),
             endpoint: Some(Endpoint::failed(ProbeStatus::DnsFailure)),
         },
     );
@@ -549,6 +591,7 @@ pub fn fixture() -> DomainState {
                 kind: MatchKind::Wildcard,
             }],
             dns_refs: Vec::new(),
+            ports: Vec::new(),
             endpoint: Some(Endpoint::failed(ProbeStatus::TcpRefused)),
         },
     );
@@ -570,6 +613,54 @@ pub fn fixture() -> DomainState {
                 },
             ],
             dns_refs: Vec::new(),
+            ports: vec![
+                PortScan {
+                    port: 465,
+                    state: ScanState::Open,
+                    served: Some(ServedCert {
+                        serial: "cc33".to_string(),
+                        common_name: Some("eas.nbp.pl".to_string()),
+                        identities: vec!["eas.nbp.pl".to_string()],
+                        pubkey_alg: Some("RSA".to_string()),
+                        sig_alg: Some("SHA256/RSA".to_string()),
+                        issuer: Some("CN=Certum OV TLS G2 R39 CA".to_string()),
+                        not_before: Some(nb),
+                        not_after: Some(na - chrono::Duration::days(10)),
+                        chain_sigs: vec!["SHA256/RSA".to_string()],
+                        pubkey_curve: None,
+                        cert_signature: Some("RSA-SHA256".to_string()),
+                    }),
+                    negotiated: Some(Negotiated {
+                        tls_version: Some("TLS1.3".to_string()),
+                        kx_group: Some("X25519".to_string()),
+                        cipher: Some("TLS_AES_256_GCM_SHA384".to_string()),
+                    }),
+                    observed_at: Some(observed),
+                },
+                PortScan {
+                    port: 25,
+                    state: ScanState::Open,
+                    served: Some(ServedCert {
+                        serial: "cc33".to_string(),
+                        common_name: Some("eas.nbp.pl".to_string()),
+                        identities: vec!["eas.nbp.pl".to_string()],
+                        pubkey_alg: Some("RSA".to_string()),
+                        sig_alg: Some("SHA256/RSA".to_string()),
+                        issuer: Some("CN=Certum OV TLS G2 R39 CA".to_string()),
+                        not_before: Some(nb),
+                        not_after: Some(na - chrono::Duration::days(10)),
+                        chain_sigs: vec!["SHA256/RSA".to_string()],
+                        pubkey_curve: None,
+                        cert_signature: Some("RSA-SHA256".to_string()),
+                    }),
+                    negotiated: Some(Negotiated {
+                        tls_version: Some("TLS1.3".to_string()),
+                        kx_group: Some("X25519".to_string()),
+                        cipher: Some("TLS_AES_256_GCM_SHA384".to_string()),
+                    }),
+                    observed_at: Some(observed),
+                },
+            ],
             endpoint: Some(Endpoint::failed(ProbeStatus::TcpRefused)),
         },
     );
@@ -583,6 +674,10 @@ pub fn fixture() -> DomainState {
         provenance: Provenance::Cached { age_secs: 2520 },
         certs,
         hosts,
+        mx: vec![MxRecord {
+            priority: 10,
+            target: "eas.nbp.pl".to_string(),
+        }],
         srv: vec![SrvRecord {
             service: "_sip._tls".to_string(),
             fqdn: "_sip._tls.nbp.pl".to_string(),
