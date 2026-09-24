@@ -7,7 +7,8 @@ Certificate discovery (crt.sh certwatch DB → HTTP fallback → cache)
 → live TLS probing (PQ/hybrid-first via rustls, OpenSSL fallback)
 → correlated text, JSON, and graph output.
 
-![pq-map graph](graph.png)
+[features demo](https://github.com/user-attachments/assets/a91043ad-a4e1-4dc0-9821-9d504935889a)
+
 
 `pq-map` correlates certificates, hostnames, DNS-visible services, live TLS
 configuration, certificate chains, keys, signatures, key exchange, and
