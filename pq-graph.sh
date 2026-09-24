@@ -111,6 +111,174 @@ cat > "$TMPDIR/index.html" <<'EOF'
       color: rgba(255,255,255,.90);
       font-weight: 600;
     }
+
+    #node-browser {
+      position: absolute;
+      right: 14px;
+      top: 64px;
+      z-index: 20;
+      width: min(360px, calc(100vw - 28px));
+      max-height: calc(100vh - 108px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: rgba(10,10,20,.82);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.22);
+      color: rgba(255,255,255,.82);
+      font: 12px sans-serif;
+    }
+
+    #node-browser-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 11px 7px;
+    }
+
+    #node-browser-title {
+      color: rgba(255,255,255,.92);
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+
+    #node-browser-count {
+      color: rgba(255,255,255,.46);
+      white-space: nowrap;
+    }
+
+    #node-search-wrap {
+      padding: 0 9px 8px;
+    }
+
+    #node-role-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 0 9px 9px;
+    }
+
+    .node-role-filter {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 999px;
+      padding: 4px 7px;
+      background: rgba(255,255,255,.035);
+      color: rgba(255,255,255,.52);
+      cursor: pointer;
+      font: inherit;
+      font-size: 10px;
+      line-height: 1.1;
+    }
+
+    .node-role-filter:hover {
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.85);
+    }
+
+    .node-role-filter.active {
+      border-color: rgba(124,167,255,.55);
+      background: rgba(124,167,255,.17);
+      color: #dbe7ff;
+    }
+
+    #node-search {
+      box-sizing: border-box;
+      width: 100%;
+      appearance: none;
+      outline: none;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 7px;
+      padding: 8px 9px;
+      background: rgba(255,255,255,.045);
+      color: rgba(255,255,255,.92);
+      font: inherit;
+    }
+
+    #node-search:focus {
+      border-color: rgba(124,167,255,.58);
+      background: rgba(255,255,255,.07);
+    }
+
+    #node-search::placeholder {
+      color: rgba(255,255,255,.32);
+    }
+
+    #node-list {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+
+    .node-result {
+      display: grid;
+      grid-template-columns: 10px minmax(0, 1fr);
+      gap: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,.045);
+      background: transparent;
+      color: rgba(255,255,255,.80);
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .node-result:hover,
+    .node-result.active {
+      background: rgba(124,167,255,.11);
+      color: #fff;
+    }
+
+    .node-result-dot {
+      width: 7px;
+      height: 7px;
+      margin-top: 4px;
+      border-radius: 50%;
+      background: var(--node-color, #999);
+      box-shadow: 0 0 7px color-mix(in srgb, var(--node-color, #999) 65%, transparent);
+    }
+
+    .node-result-main {
+      min-width: 0;
+    }
+
+    .node-result-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .node-result-alias {
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: rgba(255,255,255,.58);
+    }
+
+    .node-result-alias::before {
+      content: "↳ ";
+      color: rgba(255,255,255,.32);
+    }
+
+    .node-result-meta {
+      margin-top: 2px;
+      color: rgba(255,255,255,.38);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    #node-list-empty {
+      padding: 14px 11px;
+      color: rgba(255,255,255,.42);
+    }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/3d-force-graph"></script>
@@ -124,9 +292,23 @@ cat > "$TMPDIR/index.html" <<'EOF'
   Interactive topology of observed cryptographic relationships.
 </div>
 
+<div id="node-browser">
+  <div id="node-browser-header">
+    <div id="node-browser-title">Nodes</div>
+    <div id="node-browser-count"></div>
+  </div>
+  <div id="node-search-wrap">
+    <input id="node-search" type="search" autocomplete="off" spellcheck="false"
+           placeholder="Search nodes, e.g. host allegro">
+  </div>
+  <div id="node-role-filters"></div>
+  <div id="node-list"></div>
+</div>
+
 <div id="controls">
   <div id="selection">Full graph</div>
   <button id="hop1" disabled title="Select a node first; then show its direct neighbours">1 hop</button>
+  <button id="details" disabled title="Show the selected entity's semantic details without expanding through shared nodes">Details</button>
   <button id="hop2" disabled title="Select a node first; then show neighbours-of-neighbours">2 hops</button>
   <button id="back" class="primary" hidden title="Return to the full graph and restore the view from before drill-down">Back</button>
   <button id="resetView" title="Return to the full graph and restore the initial view">Reset view</button>
@@ -156,13 +338,11 @@ if (!response.ok) {
 const canonicalData = await response.json();
 
 /* ---------------------------------------------------------
- * DISPLAY PROJECTION / HOST COMPACTION
+ * DISPLAY PROJECTION
  *
- * Keep graph.json lossless. For presentation only, compact the
- * common pair foo.example + www.foo.example into one HOST node
- * when both names expose the same observed crypto posture.
- * Certificate nodes remain distinct and both stay connected to
- * the compacted host.
+ * Keep HOST nodes lossless in the graph. Apex + www grouping is now a
+ * browser-only presentation feature, so both underlying nodes must remain
+ * available for selection and neighbourhood inspection.
  * --------------------------------------------------------- */
 
 function rawEndpointId(endpoint) {
@@ -173,160 +353,11 @@ function relationName(link) {
   return link.label || link.type || "";
 }
 
-function normalizedBaseHost(label) {
-  if (!label) return null;
-  return label.startsWith("www.") ? label.slice(4) : label;
-}
-
-function observedCryptoSignature(hostId, links) {
-  const relevant = new Set([
-    "exposes",
-    "negotiated_kx",
-    "symmetric_cipher"
-  ]);
-
-  const values = [];
-
-  for (const link of links) {
-    const sourceId = rawEndpointId(link.source);
-    const targetId = rawEndpointId(link.target);
-    const relation = relationName(link);
-
-    if (!relevant.has(relation)) continue;
-    if (sourceId !== hostId && targetId !== hostId) continue;
-
-    const otherId = sourceId === hostId ? targetId : sourceId;
-    values.push(`${relation}:${otherId}`);
-  }
-
-  values.sort();
-  return values.join("|");
-}
-
-function certificateLabelsForHost(hostId, links, canonicalNodeById) {
-  const labels = new Set();
-
-  for (const link of links) {
-    const sourceId = rawEndpointId(link.source);
-    const targetId = rawEndpointId(link.target);
-    const relation = relationName(link);
-
-    let certificateId = null;
-
-    if (relation === "presents_certificate" && sourceId === hostId) {
-      certificateId = targetId;
-    } else if (relation === "certificate_for" && targetId === hostId) {
-      certificateId = sourceId;
-    }
-
-    if (!certificateId) continue;
-
-    const cert = canonicalNodeById.get(certificateId);
-    if (cert) labels.add(cert.label || cert.id);
-  }
-
-  return [...labels].sort();
-}
-
 function buildDisplayProjection(canonical) {
-  const canonicalNodeById = new Map(
-    canonical.nodes.map(node => [node.id, node])
-  );
-
-  const hostsByBase = new Map();
-
-  for (const node of canonical.nodes) {
-    if (node.type !== "host") continue;
-
-    const base = normalizedBaseHost(node.label);
-    if (!base) continue;
-
-    if (!hostsByBase.has(base)) hostsByBase.set(base, []);
-    hostsByBase.get(base).push(node);
-  }
-
-  const replacementId = new Map();
-  const aggregateNodes = new Map();
-
-  for (const [base, hosts] of hostsByBase) {
-    const apex = hosts.find(node => node.label === base);
-    const www = hosts.find(node => node.label === `www.${base}`);
-
-    if (!apex || !www) continue;
-
-    const apexSignature = observedCryptoSignature(apex.id, canonical.links);
-    const wwwSignature = observedCryptoSignature(www.id, canonical.links);
-
-    // Only compact when there is actual observed crypto/service data and
-    // the two hostnames are operationally equivalent in this view.
-    if (!apexSignature || apexSignature !== wwwSignature) continue;
-
-    const aggregateId = `host-group:${base}`;
-    const aliases = [apex, www]
-      .sort((a, b) => a.label.localeCompare(b.label))
-      .map(host => ({
-        id: host.id,
-        label: host.label,
-        certificates: certificateLabelsForHost(
-          host.id,
-          canonical.links,
-          canonicalNodeById
-        )
-      }));
-
-    aggregateNodes.set(aggregateId, {
-      ...apex,
-      id: aggregateId,
-      label: base,
-      aliases,
-      memberIds: aliases.map(alias => alias.id),
-      compactedHost: true
-    });
-
-    replacementId.set(apex.id, aggregateId);
-    replacementId.set(www.id, aggregateId);
-  }
-
-  const nodes = [];
-
-  for (const node of canonical.nodes) {
-    const replacement = replacementId.get(node.id);
-
-    if (!replacement) {
-      nodes.push({ ...node });
-      continue;
-    }
-
-    if (!nodes.some(existing => existing.id === replacement)) {
-      nodes.push(aggregateNodes.get(replacement));
-    }
-  }
-
-  const links = [];
-  const seenLinks = new Set();
-
-  for (const link of canonical.links) {
-    const originalSource = rawEndpointId(link.source);
-    const originalTarget = rawEndpointId(link.target);
-    const source = replacementId.get(originalSource) || originalSource;
-    const target = replacementId.get(originalTarget) || originalTarget;
-
-    // A host-pair relation collapsed onto itself carries no information.
-    if (source === target) continue;
-
-    const relation = relationName(link);
-    const key = `${source}\u0000${target}\u0000${relation}`;
-    if (seenLinks.has(key)) continue;
-    seenLinks.add(key);
-
-    links.push({
-      ...link,
-      source,
-      target
-    });
-  }
-
-  return { nodes, links };
+  return {
+    nodes: canonical.nodes.map(node => ({ ...node })),
+    links: canonical.links.map(link => ({ ...link }))
+  };
 }
 
 const data = buildDisplayProjection(canonicalData);
@@ -334,6 +365,46 @@ const data = buildDisplayProjection(canonicalData);
 const nodeById = new Map(
   data.nodes.map(node => [node.id, node])
 );
+
+/* ---------------------------------------------------------
+ * CA HIERARCHY
+ *
+ * Prefer an explicit metadata.ca_role from the producer, but infer it from
+ * issued_by edges as a fallback so older graph JSON still renders correctly.
+ * A CA that is itself issued by another CA is an intermediate. A CA with no
+ * parent CA in the graph is treated as a root/trust anchor.
+ * --------------------------------------------------------- */
+
+function annotateCaRoles() {
+  const caIds = new Set(
+    data.nodes
+      .filter(node => node.group === "issuer")
+      .map(node => node.id)
+  );
+
+  const caWithParent = new Set();
+
+  for (const link of data.links) {
+    const relation = link.label || link.type || "";
+    if (relation !== "issued_by") continue;
+
+    const sourceId = rawEndpointId(link.source);
+    const targetId = rawEndpointId(link.target);
+
+    if (caIds.has(sourceId) && caIds.has(targetId)) {
+      caWithParent.add(sourceId);
+    }
+  }
+
+  for (const node of data.nodes) {
+    if (!caIds.has(node.id)) continue;
+
+    const explicit = node.metadata?.ca_role || node.meta?.ca_role;
+    node._caRole = explicit || (caWithParent.has(node.id) ? "intermediate" : "root");
+  }
+}
+
+annotateCaRoles();
 
 /* Keep references to the complete graph. 3d-force-graph mutates
  * link endpoints into node objects, so all filtering code below
@@ -376,7 +447,7 @@ function role(node) {
   }
 
   if (node.group === "issuer") {
-    return "issuer";
+    return node._caRole === "root" ? "root_ca" : "intermediate_ca";
   }
 
   if (node.group === "certificate_key") {
@@ -481,6 +552,12 @@ function displayLabel(node) {
     case "certificate":
       return `CERT · ${node.label}`;
 
+    case "root_ca":
+      return `ROOT CA · ${node.label}`;
+
+    case "intermediate_ca":
+      return `CA · ${node.label}`;
+
     default:
       return node.label || node.id;
   }
@@ -495,7 +572,12 @@ function targetX(node) {
 
   switch (role(node)) {
 
-    case "issuer":
+    case "root_ca":
+      return -350;
+
+    case "intermediate_ca":
+      return -230;
+
     case "certificate_key":
     case "certificate_signature":
       return -230;
@@ -521,8 +603,11 @@ function targetZ(node) {
 
   switch (role(node)) {
 
-    case "issuer":
-      return 90;
+    case "root_ca":
+      return 110;
+
+    case "intermediate_ca":
+      return 75;
 
     case "certificate_key":
       return 0;
@@ -632,7 +717,23 @@ const highlightLinks = new Set();
 
 // Persistent investigation selection.
 let selectedNodeId = null;
+let selectedNodeIds = new Set();
 let hopDepth = 1;
+let investigationMode = "hop1";
+
+function isInvestigating() {
+  return selectedNodeIds.size > 0;
+}
+
+function isSelectedNode(node) {
+  return selectedNodeIds.has(node.id);
+}
+
+// Search is orthogonal to investigation: it narrows the browser list and
+// highlights matching nodes without changing graph topology.
+let nodeSearchQuery = "";
+let selectedNodeRole = "all";
+let searchMatchIds = new Set();
 
 
 /* ---------------------------------------------------------
@@ -649,7 +750,10 @@ function baseColor(node) {
     case "certificate":
       return "#c9c9d2";
 
-    case "issuer":
+    case "root_ca":
+      return "#ff8c42";
+
+    case "intermediate_ca":
       return "#ffb65c";
 
     case "certificate_key":
@@ -673,8 +777,29 @@ function baseColor(node) {
 }
 
 
+function hasActiveSearch() {
+  return nodeSearchQuery.trim().length > 0 || selectedNodeRole !== "all";
+}
+
+function isSearchMatch(node) {
+  return searchMatchIds.has(node.id);
+}
+
 function nodeColor(node) {
-  return node.id === selectedNodeId ? "#ffffff" : baseColor(node);
+  if (isSelectedNode(node)) return "#ffffff";
+
+  // Investigation mode takes visual precedence over browser/search filtering.
+  // Once a node is opened in 1-hop/2-hop view, its neighbours must remain
+  // readable even when the browser is still filtered to e.g. "service".
+  if (isInvestigating()) return baseColor(node);
+
+  if (hasActiveSearch()) {
+    return isSearchMatch(node)
+      ? "#ffffff"
+      : "#343440";
+  }
+
+  return baseColor(node);
 }
 
 
@@ -689,7 +814,8 @@ function nodeSize(node) {
   switch (role(node)) {
     case "host": size = 1.2; break;
     case "certificate": size = 1.1; break;
-    case "issuer": size = 5; break;
+    case "root_ca": size = 6.5; break;
+    case "intermediate_ca": size = 5; break;
     case "certificate_key":
     case "certificate_signature": size = 3; break;
     case "key_exchange": size = 5; break;
@@ -698,9 +824,15 @@ function nodeSize(node) {
     default: size = 2;
   }
 
-  return node.id === selectedNodeId
-    ? Math.max(size * 4, 8)
-    : size;
+  if (isSelectedNode(node)) {
+    return Math.max(size * 4, 8);
+  }
+
+  if (!isInvestigating() && hasActiveSearch() && isSearchMatch(node)) {
+    return Math.max(size * 2.2, 4);
+  }
+
+  return size;
 }
 
 
@@ -723,7 +855,10 @@ function textHeight(node) {
     case "certificate":
       return 1.8;
 
-    case "issuer":
+    case "root_ca":
+      return 5.2;
+
+    case "intermediate_ca":
       return 4.5;
 
     case "certificate_key":
@@ -745,7 +880,7 @@ function textHeight(node) {
 
 function makeText(node) {
 
-  const selected = node.id === selectedNodeId;
+  const selected = isSelectedNode(node);
   const text = selected
     ? `● SELECTED\n${displayLabel(node)}`
     : displayLabel(node);
@@ -757,6 +892,14 @@ function makeText(node) {
     sprite.color = "#ffffff";
     sprite.textHeight = 6;
     sprite.center.y = -1.35;
+  } else if (!isInvestigating() && hasActiveSearch()) {
+    // Search/filter dimming applies only while browsing the full graph.
+    // In investigation mode every visible neighbour gets its normal label.
+    sprite.color = isSearchMatch(node) ? "#ffffff" : "#343440";
+    sprite.textHeight = isSearchMatch(node)
+      ? Math.max(textHeight(node) * 1.35, 2.8)
+      : textHeight(node);
+    sprite.center.y = -0.65;
   } else {
     sprite.color = baseColor(node);
     sprite.textHeight = textHeight(node);
@@ -882,6 +1025,132 @@ const Graph =
     return lines.join("<br>");
   }
 
+  // Certificate tooltips are entity summaries, not raw graph-edge dumps.
+  if (role(node) === "certificate") {
+    const metadata = node.metadata || node.meta || {};
+    const sans = Array.isArray(metadata.sans)
+      ? [...new Set(metadata.sans.filter(Boolean))]
+      : [];
+    const certLabel = (node.label || node.id)
+      .replace(/\s+\+\d+\s+SANs?$/i, "");
+
+    const lines = [
+      `<b>CERT · ${certLabel}</b>`,
+      ""
+    ];
+
+    const hosts = [];
+    const issuers = [];
+    const keys = [];
+    const signatures = [];
+    const other = [];
+
+    for (const c of connections) {
+      switch (c.relation) {
+        case "presents_certificate":
+        case "certificate_for":
+          hosts.push(c.node.label || c.node.id);
+          break;
+
+        case "issued_by":
+          issuers.push(c.node.label || c.node.id);
+          break;
+
+        case "cert_key":
+          keys.push(c.node.label || c.node.id);
+          break;
+
+        case "cert_signature":
+          signatures.push(c.node.label || c.node.id);
+          break;
+
+        default:
+          other.push(c);
+      }
+    }
+
+    const unique = values => [...new Set(values.filter(Boolean))];
+    const hostNames = unique(hosts);
+    const issuerNames = unique(issuers);
+    const keyNames = unique(keys);
+    const signatureNames = unique(signatures);
+
+    // Human-facing summary first. Keep X.509 terminology out of the main
+    // reading path: "Used by" is observed deployment; "Covers" is the set of
+    // DNS names carried by the certificate metadata.
+    lines.push(
+      `<span style="opacity:.60">Used by</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ` +
+      `${hostNames.length} observed host${hostNames.length === 1 ? "" : "s"}`
+    );
+
+    lines.push(
+      `<span style="opacity:.60">Covers</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ` +
+      `${sans.length} hostname${sans.length === 1 ? "" : "s"}`
+    );
+
+    lines.push("");
+
+    if (issuerNames[0]) {
+      lines.push(`<span style="opacity:.60">Issuer</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${issuerNames[0]}`);
+    }
+
+    if (keyNames[0]) {
+      lines.push(`<span style="opacity:.60">Key</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${keyNames[0]}`);
+    }
+
+    if (signatureNames[0]) {
+      lines.push(`<span style="opacity:.60">Signature</span>&nbsp; ${signatureNames[0]}`);
+    }
+
+    if (metadata.not_before || metadata.not_after) {
+      const formatDate = value => value ? String(value).slice(0, 10) : "?";
+      lines.push(
+        `<span style="opacity:.60">Valid</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ` +
+        `${formatDate(metadata.not_before)} → ${formatDate(metadata.not_after)}`
+      );
+    }
+
+    // Preserve unexpected relations rather than silently dropping them.
+    if (other.length) {
+      lines.push("");
+      for (const c of other) {
+        lines.push(
+          `<span style="opacity:.55">${relationForPerspective(c.relation, c.outgoing)}</span> ` +
+          `${displayLabel(c.node)}`
+        );
+      }
+    }
+
+    // Full evidence once, at the bottom. This keeps the top compact while the
+    // user can still inspect every observed presenter and every covered name.
+    if (hostNames.length || sans.length) {
+      lines.push("");
+      lines.push(`<span style="opacity:.30">────────────────────────</span>`);
+    }
+
+    if (hostNames.length) {
+      lines.push("");
+      lines.push(
+        `<span style="opacity:.58;font-weight:600">Hosts using this certificate (${hostNames.length})</span>`
+      );
+      for (const host of hostNames) {
+        lines.push(`<span style="opacity:.78">&nbsp;&nbsp;${host}</span>`);
+      }
+    }
+
+    if (sans.length) {
+      lines.push("");
+      lines.push(
+        `<span style="opacity:.58;font-weight:600">Hostnames covered by certificate (${sans.length})</span>`
+      );
+      for (const san of sans) {
+        lines.push(`<span style="opacity:.78">&nbsp;&nbsp;${san}</span>`);
+      }
+    }
+
+    return lines.join("<br>");
+  }
+
   const lines = [
     `<b>${displayLabel(node)}</b>`,
     ""
@@ -904,13 +1173,35 @@ const Graph =
   /*
    * Cheap normal links.
    */
-  .linkOpacity(0.12)
+  .linkOpacity(link => {
+    if (highlightLinks.has(link)) return 0.45;
 
-  .linkWidth(link =>
-    highlightLinks.has(link)
-      ? 2.5
-      : 0.20
-  )
+    if (isInvestigating()) {
+      const sourceId = endpointId(link.source);
+      const targetId = endpointId(link.target);
+      const direct = selectedNodeIds.has(sourceId) || selectedNodeIds.has(targetId);
+
+      // In investigation mode make the selected node's direct relationships
+      // clearly readable; keep 2-hop/internal context visible as well.
+      return direct ? 0.32 : 0.12;
+    }
+
+    return 0.05;
+  })
+
+  .linkWidth(link => {
+    if (highlightLinks.has(link)) return 0.65;
+
+    if (isInvestigating()) {
+      const sourceId = endpointId(link.source);
+      const targetId = endpointId(link.target);
+      const direct = selectedNodeIds.has(sourceId) || selectedNodeIds.has(targetId);
+
+      return direct ? 0.50 : 0.22;
+    }
+
+    return 0.09;
+  })
 
   /*
    * No particles.
@@ -1031,17 +1322,18 @@ Graph
  * --------------------------------------------------------- */
 
 function refreshHighlight() {
-
-  Graph.linkWidth(
-    Graph.linkWidth()
-  );
+  Graph
+    .linkWidth(Graph.linkWidth())
+    .linkOpacity(Graph.linkOpacity());
 }
 
 function refreshSelection() {
   Graph
     .nodeVal(Graph.nodeVal())
     .nodeColor(Graph.nodeColor())
-    .nodeThreeObject(Graph.nodeThreeObject());
+    .nodeThreeObject(Graph.nodeThreeObject())
+    .linkWidth(Graph.linkWidth())
+    .linkOpacity(Graph.linkOpacity());
 }
 
 
@@ -1074,7 +1366,9 @@ Graph.onLinkHover(link => {
 /* ---------------------------------------------------------
  * INVESTIGATION MODE
  *
- * Click a node to isolate its 1-hop / 2-hop neighbourhood.
+ * Click a node to isolate its 1-hop neighbourhood. Details adds semantic
+ * entity information without traversing through shared nodes; 2 hops stays
+ * as the generic topological neighbourhood expansion.
  * Back restores the full graph and the camera position from before drill-down.
  * Reset view restores the full graph and the initial/default camera.
  * --------------------------------------------------------- */
@@ -1083,10 +1377,337 @@ let browsingCamera = null;
 let initialCamera = null;
 
 const hop1Button = document.getElementById("hop1");
+const detailsButton = document.getElementById("details");
 const hop2Button = document.getElementById("hop2");
 const backButton = document.getElementById("back");
 const resetViewButton = document.getElementById("resetView");
 const selectionLabel = document.getElementById("selection");
+const nodeSearchInput = document.getElementById("node-search");
+const nodeList = document.getElementById("node-list");
+const nodeBrowserCount = document.getElementById("node-browser-count");
+const nodeRoleFilters = document.getElementById("node-role-filters");
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function globToRegExp(glob) {
+  const source = glob
+    .split("*")
+    .map(escapeRegExp)
+    .join(".*");
+
+  return new RegExp(source, "i");
+}
+
+const CRYPTO_ROLES = new Set([
+  "certificate_key",
+  "certificate_signature",
+  "key_exchange",
+  "symmetric"
+]);
+
+function searchableNodeText(node) {
+  const aliases = node.aliases
+    ? node.aliases.flatMap(alias => [
+        alias.id || "",
+        alias.label || "",
+        ...(alias.certificates || [])
+      ])
+    : [];
+
+  const r = role(node);
+  const categories = CRYPTO_ROLES.has(r) ? ["crypto"] : [];
+
+  return [
+    displayLabel(node),
+    r,
+    ...categories,
+    node.type || "",
+    node.group || "",
+    node.id || "",
+    node.label || "",
+    ...aliases
+  ].join("\n");
+}
+
+function queryTokens(rawQuery) {
+  return rawQuery
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function nodeMatchesQuery(node, rawQuery) {
+  const tokens = queryTokens(rawQuery);
+  if (!tokens.length) return true;
+
+  const haystack = searchableNodeText(node);
+
+  // Search terms are ANDed. Each term is a substring unless it contains '*'.
+  // Example: "host allegro" => node must match both "host" and "allegro".
+  return tokens.every(token => {
+    const pattern = token.includes("*") ? token : `*${token}*`;
+    return globToRegExp(pattern).test(haystack);
+  });
+}
+
+function nodeMatchesRole(node) {
+  if (selectedNodeRole === "all") return true;
+
+  const r = role(node);
+  if (selectedNodeRole === "crypto") return CRYPTO_ROLES.has(r);
+  if (selectedNodeRole === "ca") return r === "intermediate_ca" || r === "root_ca";
+
+  return r === selectedNodeRole;
+}
+
+function availableNodeRoles() {
+  const present = new Set(fullData.nodes.map(node => role(node)));
+  const filters = [];
+
+  if (present.has("host")) filters.push("host");
+  if (present.has("certificate")) filters.push("certificate");
+  if (present.has("intermediate_ca") || present.has("root_ca")) filters.push("ca");
+  if ([...CRYPTO_ROLES].some(r => present.has(r))) filters.push("crypto");
+  if (present.has("service")) filters.push("service");
+  if (present.has("other")) filters.push("other");
+
+  return filters;
+}
+
+function renderRoleFilters() {
+  nodeRoleFilters.replaceChildren();
+
+  for (const r of ["all", ...availableNodeRoles()]) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "node-role-filter";
+    button.classList.toggle("active", selectedNodeRole === r);
+    button.textContent = ({
+      ca: "CA"
+    })[r] || r;
+
+    button.addEventListener("click", event => {
+      event.stopPropagation();
+      selectedNodeRole = r;
+      renderRoleFilters();
+      renderNodeBrowser();
+    });
+
+    nodeRoleFilters.appendChild(button);
+  }
+}
+
+/* Pick the scanned/base host for browser ordering. We do not need a
+ * public-suffix parser here: the graph is a domain-scoped inventory, so the
+ * base host is the non-www HOST that is the suffix of the largest number of
+ * other HOST names. Ties prefer the shorter hostname.
+ */
+function browserBaseHostId() {
+  const hosts = fullData.nodes.filter(node =>
+    role(node) === "host" && node.label && !node.label.startsWith("www.")
+  );
+
+  let best = null;
+  let bestDescendants = -1;
+
+  for (const candidate of hosts) {
+    const suffix = `.${candidate.label}`;
+    const descendants = fullData.nodes.reduce((count, node) => {
+      if (role(node) !== "host" || !node.label) return count;
+      return count + (node.label.endsWith(suffix) ? 1 : 0);
+    }, 0);
+
+    if (
+      descendants > bestDescendants ||
+      (descendants === bestDescendants && best && candidate.label.length < best.label.length)
+    ) {
+      best = candidate;
+      bestDescendants = descendants;
+    }
+  }
+
+  return best?.id || null;
+}
+
+const baseHostId = browserBaseHostId();
+
+function sortedNodes(nodes) {
+  return [...nodes].sort((a, b) => {
+    const roleOrder = role(a).localeCompare(role(b));
+    if (roleOrder) return roleOrder;
+
+    // Within HOST results, keep the scanned/base domain first. Its www
+    // counterpart is rendered beneath it by browserRows().
+    if (role(a) === "host") {
+      if (a.id === baseHostId && b.id !== baseHostId) return -1;
+      if (b.id === baseHostId && a.id !== baseHostId) return 1;
+    }
+
+    return displayLabel(a).localeCompare(displayLabel(b));
+  });
+}
+
+/* Browser-only presentation grouping. Keep the graph model untouched:
+ * when both foo.example and www.foo.example are present in the current
+ * result set, render them as one HOST row.
+ */
+function browserRows(nodes) {
+  const byHostLabel = new Map(
+    nodes
+      .filter(node => role(node) === "host" && !node.compactedHost)
+      .map(node => [node.label, node])
+  );
+
+  const consumed = new Set();
+  const rows = [];
+
+  for (const node of nodes) {
+    if (consumed.has(node.id)) continue;
+
+    if (role(node) === "host" && !node.compactedHost && node.label && !node.label.startsWith("www.")) {
+      const www = byHostLabel.get(`www.${node.label}`);
+
+      if (www && !consumed.has(www.id)) {
+        consumed.add(node.id);
+        consumed.add(www.id);
+        rows.push({
+          primary: node,
+          secondary: www
+        });
+        continue;
+      }
+    }
+
+    // If the www node sorts before its apex for any reason, defer it until
+    // the apex is processed so the pair still renders apex-first.
+    if (role(node) === "host" && !node.compactedHost && node.label?.startsWith("www.")) {
+      const apex = byHostLabel.get(node.label.slice(4));
+      if (apex && !consumed.has(apex.id)) continue;
+    }
+
+    consumed.add(node.id);
+    rows.push({ primary: node, secondary: null });
+  }
+
+  return rows;
+}
+
+function renderNodeBrowser() {
+  const matches = sortedNodes(
+    fullData.nodes.filter(node =>
+      nodeMatchesRole(node) && nodeMatchesQuery(node, nodeSearchQuery)
+    )
+  );
+
+  searchMatchIds = new Set(matches.map(node => node.id));
+
+  nodeBrowserCount.textContent = hasActiveSearch()
+    ? `${matches.length} / ${fullData.nodes.length}`
+    : `${fullData.nodes.length}`;
+
+  nodeList.replaceChildren();
+
+  if (!matches.length) {
+    const empty = document.createElement("div");
+    empty.id = "node-list-empty";
+    empty.textContent = "No matching nodes";
+    nodeList.appendChild(empty);
+  } else {
+    const fragment = document.createDocumentFragment();
+
+    for (const row of browserRows(matches)) {
+      const node = row.primary;
+      const secondary = row.secondary;
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "node-result";
+      const rowNodeIds = secondary
+        ? [node.id, secondary.id]
+        : [node.id];
+
+      button.classList.toggle(
+        "active",
+        rowNodeIds.some(id => selectedNodeIds.has(id))
+      );
+      button.title = secondary
+        ? `${displayLabel(node)}\n${displayLabel(secondary)}`
+        : displayLabel(node);
+      button.dataset.nodeIds = JSON.stringify(rowNodeIds);
+
+      const dot = document.createElement("span");
+      dot.className = "node-result-dot";
+      dot.style.setProperty("--node-color", baseColor(node));
+
+      const main = document.createElement("span");
+      main.className = "node-result-main";
+
+      const label = document.createElement("div");
+      label.className = "node-result-label";
+      label.textContent = node.label || node.id;
+
+      main.appendChild(label);
+
+      if (secondary) {
+        const alias = document.createElement("div");
+        alias.className = "node-result-alias";
+        alias.textContent = secondary.label || secondary.id;
+        alias.title = displayLabel(secondary);
+        main.appendChild(alias);
+      }
+
+      const meta = document.createElement("div");
+      meta.className = "node-result-meta";
+      meta.textContent = ({
+        intermediate_ca: "intermediate CA",
+        root_ca: "root CA"
+      })[role(node)] || role(node);
+
+      main.appendChild(meta);
+      button.append(dot, main);
+
+      // A grouped apex + www row is one browser entity. Clicking anywhere on
+      // it selects both underlying graph nodes; ordinary rows still select one.
+      button.addEventListener("click", event => {
+        event.stopPropagation();
+
+        if (!isInvestigating()) {
+          saveBrowsingCamera();
+        }
+
+        hopDepth = 1;
+        investigationMode = "hop1";
+        showNeighborhood(rowNodeIds);
+      });
+
+      fragment.appendChild(button);
+    }
+
+    nodeList.appendChild(fragment);
+  }
+
+  refreshSelection();
+}
+
+function updateNodeSearch() {
+  nodeSearchQuery = nodeSearchInput.value;
+  renderNodeBrowser();
+}
+
+nodeSearchInput.addEventListener("input", updateNodeSearch);
+nodeSearchInput.addEventListener("keydown", event => {
+  // Keep typing/search shortcuts from leaking into graph-level key handling.
+  event.stopPropagation();
+
+  if (event.key === "Escape" && nodeSearchInput.value) {
+    nodeSearchInput.value = "";
+    updateNodeSearch();
+  }
+});
+
+renderRoleFilters();
 
 function captureCamera() {
   const camera = Graph.camera();
@@ -1122,9 +1743,10 @@ function restoreCamera(saved, duration = 700) {
   });
 }
 
-function collectNeighborhood(startId, depth) {
-  const visited = new Set([startId]);
-  let frontier = new Set([startId]);
+function collectNeighborhood(startIds, depth) {
+  const seeds = Array.isArray(startIds) ? startIds : [startIds];
+  const visited = new Set(seeds);
+  let frontier = new Set(seeds);
 
   for (let level = 0; level < depth; level++) {
     const next = new Set();
@@ -1148,8 +1770,8 @@ function collectNeighborhood(startId, depth) {
   return visited;
 }
 
-function visibleGraphFor(startId, depth) {
-  const visibleIds = collectNeighborhood(startId, depth);
+function visibleGraphFor(startIds, depth) {
+  const visibleIds = collectNeighborhood(startIds, depth);
 
   const nodes = fullData.nodes.filter(node =>
     visibleIds.has(node.id)
@@ -1165,26 +1787,149 @@ function visibleGraphFor(startId, depth) {
   return { nodes, links };
 }
 
+function visibleDetailsFor(startIds) {
+  const seeds = Array.isArray(startIds) ? startIds : [startIds];
+  const visibleIds = new Set(seeds);
+
+  const hostRelations = new Set([
+    "exposes",
+    "negotiated_kx",
+    "symmetric_cipher",
+    "presents_certificate",
+    "certificate_for"
+  ]);
+
+  const certificateRelations = new Set([
+    "issued_by",
+    "cert_key",
+    "cert_signature"
+  ]);
+
+  const certificateIds = new Set();
+
+  function addOtherEndpoint(link, currentId) {
+    const sourceId = endpointId(link.source);
+    const targetId = endpointId(link.target);
+    const otherId = sourceId === currentId ? targetId : sourceId;
+    if (otherId) visibleIds.add(otherId);
+    return otherId;
+  }
+
+  for (const seedId of seeds) {
+    const seed = nodeById.get(seedId);
+    if (!seed) continue;
+
+    // Details is semantic for hosts. For other entity types, keep the
+    // behaviour useful and conservative by showing their direct neighbours.
+    if (role(seed) !== "host") {
+      for (const link of seed.links || []) {
+        addOtherEndpoint(link, seedId);
+      }
+      continue;
+    }
+
+    for (const link of seed.links || []) {
+      const relation = relationName(link);
+      if (!hostRelations.has(relation)) continue;
+
+      const otherId = addOtherEndpoint(link, seedId);
+      const other = nodeById.get(otherId);
+      if (other && role(other) === "certificate") {
+        certificateIds.add(otherId);
+      }
+    }
+  }
+
+  // Expand certificate descriptive metadata and follow issued_by recursively
+  // through CA nodes so Details shows the complete path to the root. Do not
+  // traverse through shared service/KX/cipher/key/signature nodes.
+  const caQueue = [];
+  const seenCas = new Set();
+
+  for (const certificateId of certificateIds) {
+    const certificate = nodeById.get(certificateId);
+    if (!certificate) continue;
+
+    for (const link of certificate.links || []) {
+      const relation = relationName(link);
+      if (!certificateRelations.has(relation)) continue;
+
+      const otherId = addOtherEndpoint(link, certificateId);
+      const other = nodeById.get(otherId);
+      if (relation === "issued_by" && other &&
+          (role(other) === "intermediate_ca" || role(other) === "root_ca")) {
+        caQueue.push(otherId);
+      }
+    }
+  }
+
+  while (caQueue.length) {
+    const caId = caQueue.shift();
+    if (seenCas.has(caId)) continue;
+    seenCas.add(caId);
+
+    const ca = nodeById.get(caId);
+    if (!ca) continue;
+
+    for (const link of ca.links || []) {
+      if (relationName(link) !== "issued_by") continue;
+
+      const sourceId = endpointId(link.source);
+      const targetId = endpointId(link.target);
+
+      // issued_by is directed child -> parent; only walk upward.
+      if (sourceId !== caId) continue;
+
+      visibleIds.add(targetId);
+      const parent = nodeById.get(targetId);
+      if (parent &&
+          (role(parent) === "intermediate_ca" || role(parent) === "root_ca")) {
+        caQueue.push(targetId);
+      }
+    }
+  }
+
+  const nodes = fullData.nodes.filter(node => visibleIds.has(node.id));
+  const links = fullData.links.filter(link => {
+    const sourceId = endpointId(link.source);
+    const targetId = endpointId(link.target);
+    return visibleIds.has(sourceId) && visibleIds.has(targetId);
+  });
+
+  return { nodes, links };
+}
+
 function updateControls() {
-  const investigating = Boolean(selectedNodeId);
+  const investigating = isInvestigating();
+
+  for (const row of nodeList.querySelectorAll(".node-result")) {
+    let ids = [];
+    try { ids = JSON.parse(row.dataset.nodeIds || "[]"); } catch {}
+    row.classList.toggle("active", ids.some(id => selectedNodeIds.has(id)));
+  }
 
   hop1Button.disabled = !investigating;
+  detailsButton.disabled = !investigating;
   hop2Button.disabled = !investigating;
   backButton.hidden = !investigating;
 
   // A hop button is active only when a node is actually isolated.
   // This avoids the misleading initial state "1 hop" + full graph.
-  hop1Button.classList.toggle("active", investigating && hopDepth === 1);
-  hop2Button.classList.toggle("active", investigating && hopDepth === 2);
+  hop1Button.classList.toggle("active", investigating && investigationMode === "hop1");
+  detailsButton.classList.toggle("active", investigating && investigationMode === "details");
+  hop2Button.classList.toggle("active", investigating && investigationMode === "hop2");
 
   if (!investigating) {
     selectionLabel.textContent = "Full graph";
     return;
   }
 
-  const node = nodeById.get(selectedNodeId);
-  selectionLabel.innerHTML = node
-    ? `<strong>${displayLabel(node)}</strong>`
+  const selectedNodes = [...selectedNodeIds]
+    .map(id => nodeById.get(id))
+    .filter(Boolean);
+
+  selectionLabel.innerHTML = selectedNodes.length
+    ? selectedNodes.map(node => `<strong>${displayLabel(node)}</strong>`).join(" + ")
     : "Selection";
 }
 
@@ -1198,12 +1943,16 @@ function fitCurrentGraph(duration = 500, padding = 55) {
   });
 }
 
-function showNeighborhood(nodeId) {
-  selectedNodeId = nodeId;
+function showNeighborhood(nodeIds) {
+  const ids = Array.isArray(nodeIds) ? nodeIds : [nodeIds];
+  selectedNodeIds = new Set(ids);
+  selectedNodeId = ids[0] || null;
   highlightLinks.clear();
   refreshSelection();
 
-  const filtered = visibleGraphFor(nodeId, hopDepth);
+  const filtered = investigationMode === "details"
+    ? visibleDetailsFor(ids)
+    : visibleGraphFor(ids, hopDepth);
   Graph.graphData(filtered);
 
   updateControls();
@@ -1212,6 +1961,7 @@ function showNeighborhood(nodeId) {
 
 function leaveInvestigation() {
   selectedNodeId = null;
+  selectedNodeIds.clear();
   highlightLinks.clear();
 
   Graph.graphData(fullData);
@@ -1248,32 +1998,45 @@ Graph.onNodeClick(node => {
   // Save the user's current full-graph browsing view only once,
   // when entering investigation mode. 1-hop/2-hop switches must
   // not overwrite it.
-  if (!selectedNodeId) {
+  if (!isInvestigating()) {
     saveBrowsingCamera();
   }
 
   // Every new selection starts in the most focused view.
   hopDepth = 1;
+  investigationMode = "hop1";
   showNeighborhood(node.id);
 });
 
 hop1Button.addEventListener("click", event => {
   event.stopPropagation();
   hopDepth = 1;
+  investigationMode = "hop1";
   updateControls();
 
-  if (selectedNodeId) {
-    showNeighborhood(selectedNodeId);
+  if (isInvestigating()) {
+    showNeighborhood([...selectedNodeIds]);
+  }
+});
+
+detailsButton.addEventListener("click", event => {
+  event.stopPropagation();
+  investigationMode = "details";
+  updateControls();
+
+  if (isInvestigating()) {
+    showNeighborhood([...selectedNodeIds]);
   }
 });
 
 hop2Button.addEventListener("click", event => {
   event.stopPropagation();
   hopDepth = 2;
+  investigationMode = "hop2";
   updateControls();
 
-  if (selectedNodeId) {
-    showNeighborhood(selectedNodeId);
+  if (isInvestigating()) {
+    showNeighborhood([...selectedNodeIds]);
   }
 });
 
@@ -1288,11 +2051,12 @@ resetViewButton.addEventListener("click", event => {
 });
 
 window.addEventListener("keydown", event => {
-  if (event.key === "Escape" && selectedNodeId) {
+  if (event.key === "Escape" && isInvestigating()) {
     goBack();
   }
 });
 
+renderNodeBrowser();
 updateControls();
 
 
