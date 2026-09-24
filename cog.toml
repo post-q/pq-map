@@ -1,0 +1,11 @@
+#:schema https://docs.cocogitto.io/cog-schema.json
+
+# Merge commits are exempt from conventional commit checks.
+ignore_merge_commits = true
+
+# Installed into .git/hooks via `cog install-hooks`.
+[git_hooks.commit-msg]
+script = """#!/bin/sh
+set -e
+cog verify --file $1
+"""

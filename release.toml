@@ -1,0 +1,3 @@
+push-remote = "origin"
+publish = false
+tag = true
