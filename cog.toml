@@ -3,6 +3,9 @@
 # Merge commits are exempt from conventional commit checks.
 ignore_merge_commits = true
 
+# Tags are prefixed with `v` (e.g. v0.2.0).
+tag_prefix = "v"
+
 # Installed into .git/hooks via `cog install-hooks`.
 [git_hooks.commit-msg]
 script = """#!/bin/sh
