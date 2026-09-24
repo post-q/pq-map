@@ -9,6 +9,7 @@ use crate::config::Config;
 use crate::model::{Certificate, Provenance};
 
 use super::cache;
+use super::chain_cache;
 use super::ct;
 use super::ctdb;
 
@@ -53,6 +54,7 @@ pub async fn obtain(domain: &str, cfg: &Config, refresh: bool) -> Result<FetchOu
         Ok(rows) if !rows.is_empty() => {
             let certs = ct::certificates_from_db(&rows, Utc::now());
             if !certs.is_empty() {
+                let certs = attach_chains(domain, refresh, certs, cfg).await;
                 store(&file, "db", &certs);
                 return Ok(FetchOutcome {
                     certs,
@@ -99,6 +101,65 @@ pub async fn obtain(domain: &str, cfg: &Config, refresh: bool) -> Result<FetchOu
         });
     }
     Err(Error::NoCtData)
+}
+
+async fn attach_chains(
+    domain: &str,
+    refresh: bool,
+    mut certs: BTreeMap<String, Certificate>,
+    cfg: &Config,
+) -> BTreeMap<String, Certificate> {
+    let leaf_ids: Vec<u64> = {
+        let mut ids: Vec<u64> = certs
+            .values()
+            .filter_map(|c| c.ct_ids.first().copied())
+            .collect();
+        ids.sort_unstable();
+        ids.dedup();
+        ids
+    };
+    if leaf_ids.is_empty() {
+        return certs;
+    }
+
+    if !refresh {
+        if let Some(snap) = chain_cache::load(domain) {
+            if let Some(age) = chain_cache::age(domain).filter(|a| *a < cfg.cache_ttl) {
+                eprintln!("CT: using cached chains ({domain}, {} min old)", age / 60);
+                for cert in certs.values_mut() {
+                    if let Some(id) = cert.ct_ids.first() {
+                        cert.chain = snap.chains.get(id).cloned().unwrap_or_default();
+                    }
+                }
+                return certs;
+            }
+        }
+    }
+
+    match ctdb::chain_rows(&leaf_ids, cfg).await {
+        Ok(chains) => {
+            if !chains.is_empty() {
+                chain_cache::store(domain, &chains);
+            }
+            for cert in certs.values_mut() {
+                if let Some(id) = cert.ct_ids.first() {
+                    cert.chain = chains.get(id).cloned().unwrap_or_default();
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("CT: chain query failed, proceeding without chains: {e}");
+            if let Some(snap) = chain_cache::load(domain) {
+                eprintln!("CT: using stale chains ({domain})");
+                for cert in certs.values_mut() {
+                    if let Some(id) = cert.ct_ids.first() {
+                        cert.chain = snap.chains.get(id).cloned().unwrap_or_default();
+                    }
+                }
+            }
+        }
+    }
+    certs
 }
 
 /// Failure of a single crt.sh request.

@@ -412,6 +412,7 @@ mod tests {
             sig_key_algorithm: None,
             sig_hash_algorithm: None,
             cert_signature: None,
+            chain: Vec::new(),
         }
     }
 

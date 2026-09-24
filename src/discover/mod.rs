@@ -1,4 +1,5 @@
 pub mod cache;
+pub mod chain_cache;
 pub mod ct;
 pub mod ctdb;
 pub mod dns;
