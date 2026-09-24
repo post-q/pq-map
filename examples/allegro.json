@@ -1,0 +1,1063 @@
+{
+  "nodes": [
+    {
+      "id": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "DigiCert Global G2 TLS RSA SHA256 2020 CA1",
+      "type": "pki",
+      "group": "issuer",
+      "metadata": {
+        "ca_role": "intermediate",
+        "not_before": "2021-03-30T00:00:00Z",
+        "not_after": "2031-03-29T23:59:59Z"
+      }
+    },
+    {
+      "id": "ca:digicert-global-root-g2",
+      "label": "DigiCert Global Root G2",
+      "type": "pki",
+      "group": "issuer",
+      "metadata": {
+        "ca_role": "root",
+        "not_before": "2013-08-01T12:00:00Z",
+        "not_after": "2038-01-15T12:00:00Z"
+      }
+    },
+    {
+      "id": "cert:*.allegro.pl:28769342784",
+      "label": "*.allegro.pl +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "allegro.pl"
+        ],
+        "not_before": "2026-08-12T00:00:00Z",
+        "not_after": "2027-02-26T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:*.apps.developer.allegro.pl:21881576687",
+      "label": "*.apps.developer.allegro.pl +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "apps.developer.allegro.pl"
+        ],
+        "not_before": "2025-10-21T00:00:00Z",
+        "not_after": "2026-11-10T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:*.developer.allegro.pl:29234619756",
+      "label": "*.developer.allegro.pl +4 SANs",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "api.allegro.pl",
+          "developer.allegro.pl",
+          "edge.allegro.pl",
+          "upload.allegro.pl"
+        ],
+        "not_before": "2026-09-03T00:00:00Z",
+        "not_after": "2027-03-20T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:*.media.allegro.pl:29417912927",
+      "label": "*.media.allegro.pl +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "media.allegro.pl"
+        ],
+        "not_before": "2026-09-14T00:00:00Z",
+        "not_after": "2027-03-31T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:*.rtb.allegro.pl:25840028709",
+      "label": "*.rtb.allegro.pl +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "rtb.allegro.pl"
+        ],
+        "not_before": "2026-04-27T00:00:00Z",
+        "not_after": "2026-11-11T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:alior.credit-application-dev.allegro.pl:26355226113",
+      "label": "alior.credit-application-dev.allegro.pl",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "not_before": "2026-05-15T00:00:00Z",
+        "not_after": "2026-11-29T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:api.charytatywni.allegro.pl:28175756771",
+      "label": "api.charytatywni.allegro.pl +3 SANs",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "charytatywni.allegro.pl",
+          "www.api.charytatywni.allegro.pl",
+          "www.charytatywni.allegro.pl"
+        ],
+        "not_before": "2026-07-23T00:00:00Z",
+        "not_after": "2027-02-06T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:auth.wakacje.allegro.pl:25531806123",
+      "label": "auth.wakacje.allegro.pl",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "not_before": "2026-04-15T00:00:00Z",
+        "not_after": "2026-10-30T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:cs.allegro.pl:25543758527",
+      "label": "cs.allegro.pl",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "not_before": "2026-04-16T00:00:00Z",
+        "not_after": "2026-10-31T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:edge.business.allegro.pl:23314001916",
+      "label": "edge.business.allegro.pl +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "upload.business.allegro.pl"
+        ],
+        "not_before": "2025-12-23T00:00:00Z",
+        "not_after": "2027-01-20T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:img.ams.allegro.pl:28175776482",
+      "label": "img.ams.allegro.pl +5 SANs",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "img.marketing.allegro.pl",
+          "img.notifications.allegro.pl",
+          "redir.ams.allegro.pl",
+          "redir.marketing.allegro.pl",
+          "redir.notifications.allegro.pl"
+        ],
+        "not_before": "2026-07-23T00:00:00Z",
+        "not_after": "2027-02-06T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:mail.allegro.pl:27260173128",
+      "label": "mail.allegro.pl +3 SANs",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "autodiscover.allegro.pl",
+          "mail2.allegro.pl",
+          "outlook.allegro.pl"
+        ],
+        "not_before": "2026-06-17T00:00:00Z",
+        "not_after": "2027-01-01T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:rzeczyodserca.pl",
+      "label": "rzeczyodserca.pl +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "www.rzeczyodserca.pl"
+        ],
+        "not_before": "2025-12-23T00:00:00Z",
+        "not_after": "2027-01-14T23:59:59Z"
+      }
+    },
+    {
+      "id": "certkey:RSA",
+      "label": "RSA",
+      "type": "crypto",
+      "group": "certificate_key"
+    },
+    {
+      "id": "certkey:RSA-2048",
+      "label": "RSA-2048",
+      "type": "crypto",
+      "group": "certificate_key"
+    },
+    {
+      "id": "certsig:RSA-SHA256",
+      "label": "RSA-SHA256",
+      "type": "crypto",
+      "group": "certificate_signature"
+    },
+    {
+      "id": "cipher:AES256-GCM",
+      "label": "AES256-GCM",
+      "type": "crypto",
+      "group": "symmetric"
+    },
+    {
+      "id": "host:ads.allegro.pl",
+      "label": "ads.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:alior.credit-application-dev.allegro.pl",
+      "label": "alior.credit-application-dev.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:allegro.in.tmes.trendmicro.eu",
+      "label": "allegro.in.tmes.trendmicro.eu",
+      "type": "host"
+    },
+    {
+      "id": "host:allegro.pl",
+      "label": "allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:api.allegro.pl",
+      "label": "api.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:api.charytatywni.allegro.pl",
+      "label": "api.charytatywni.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:apps.developer.allegro.pl",
+      "label": "apps.developer.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:auth.wakacje.allegro.pl",
+      "label": "auth.wakacje.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:autodiscover.allegro.pl",
+      "label": "autodiscover.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:business.allegro.pl",
+      "label": "business.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:charytatywni.allegro.pl",
+      "label": "charytatywni.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:cs.allegro.pl",
+      "label": "cs.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:developer.allegro.pl",
+      "label": "developer.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:edge.allegro.pl",
+      "label": "edge.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:edge.business.allegro.pl",
+      "label": "edge.business.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:img.ams.allegro.pl",
+      "label": "img.ams.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:img.marketing.allegro.pl",
+      "label": "img.marketing.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:img.notifications.allegro.pl",
+      "label": "img.notifications.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:mail.allegro.pl",
+      "label": "mail.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:mail2.allegro.pl",
+      "label": "mail2.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:media.allegro.pl",
+      "label": "media.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:outlook.allegro.pl",
+      "label": "outlook.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:redir.ams.allegro.pl",
+      "label": "redir.ams.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:redir.marketing.allegro.pl",
+      "label": "redir.marketing.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:redir.notifications.allegro.pl",
+      "label": "redir.notifications.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:rtb.allegro.pl",
+      "label": "rtb.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:upload.allegro.pl",
+      "label": "upload.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:upload.business.allegro.pl",
+      "label": "upload.business.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:www.ads.allegro.pl",
+      "label": "www.ads.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:www.api.charytatywni.allegro.pl",
+      "label": "www.api.charytatywni.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "host:www.charytatywni.allegro.pl",
+      "label": "www.charytatywni.allegro.pl",
+      "type": "host"
+    },
+    {
+      "id": "kx:X25519",
+      "label": "X25519",
+      "type": "crypto",
+      "group": "key_exchange"
+    },
+    {
+      "id": "kx:X25519MLKEM768",
+      "label": "X25519MLKEM768",
+      "type": "crypto",
+      "group": "key_exchange"
+    },
+    {
+      "id": "service:tcp/443",
+      "label": "TCP/443",
+      "type": "service",
+      "group": "tcp_service"
+    },
+    {
+      "id": "service:tcp/465",
+      "label": "SMTPS:465",
+      "type": "service",
+      "group": "tcp_service"
+    },
+    {
+      "id": "service:tcp/587",
+      "label": "SMTP:587",
+      "type": "service",
+      "group": "tcp_service"
+    },
+    {
+      "id": "service:tcp/993",
+      "label": "IMAPS:993",
+      "type": "service",
+      "group": "tcp_service"
+    },
+    {
+      "id": "service:tcp/995",
+      "label": "POP3S:995",
+      "type": "service",
+      "group": "tcp_service"
+    }
+  ],
+  "links": [
+    {
+      "source": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "target": "ca:digicert-global-root-g2",
+      "label": "issued_by"
+    },
+    {
+      "source": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "ca:digicert-global-root-g2",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "ca:digicert-global-root-g2",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:*.allegro.pl:28769342784",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:*.allegro.pl:28769342784",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:*.allegro.pl:28769342784",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:*.apps.developer.allegro.pl:21881576687",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:*.apps.developer.allegro.pl:21881576687",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:*.apps.developer.allegro.pl:21881576687",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:*.developer.allegro.pl:29234619756",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:*.developer.allegro.pl:29234619756",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:*.developer.allegro.pl:29234619756",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:*.media.allegro.pl:29417912927",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:*.media.allegro.pl:29417912927",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:*.media.allegro.pl:29417912927",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:*.rtb.allegro.pl:25840028709",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:*.rtb.allegro.pl:25840028709",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:*.rtb.allegro.pl:25840028709",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:alior.credit-application-dev.allegro.pl:26355226113",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:alior.credit-application-dev.allegro.pl:26355226113",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:alior.credit-application-dev.allegro.pl:26355226113",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:api.charytatywni.allegro.pl:28175756771",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:api.charytatywni.allegro.pl:28175756771",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:api.charytatywni.allegro.pl:28175756771",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:auth.wakacje.allegro.pl:25531806123",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:auth.wakacje.allegro.pl:25531806123",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:auth.wakacje.allegro.pl:25531806123",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:cs.allegro.pl:25543758527",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:cs.allegro.pl:25543758527",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:cs.allegro.pl:25543758527",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:edge.business.allegro.pl:23314001916",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:edge.business.allegro.pl:23314001916",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:edge.business.allegro.pl:23314001916",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:img.ams.allegro.pl:28175776482",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:img.ams.allegro.pl:28175776482",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:img.ams.allegro.pl:28175776482",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:mail.allegro.pl:27260173128",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:mail.allegro.pl:27260173128",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:mail.allegro.pl:27260173128",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:rzeczyodserca.pl",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:rzeczyodserca.pl",
+      "target": "certkey:RSA",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:rzeczyodserca.pl",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "host:ads.allegro.pl",
+      "target": "cert:*.allegro.pl:28769342784",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:ads.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:ads.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:ads.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:alior.credit-application-dev.allegro.pl",
+      "target": "cert:alior.credit-application-dev.allegro.pl:26355226113",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:allegro.pl",
+      "target": "cert:*.allegro.pl:28769342784",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:api.allegro.pl",
+      "target": "cert:*.developer.allegro.pl:29234619756",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:api.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:api.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:api.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:api.charytatywni.allegro.pl",
+      "target": "cert:api.charytatywni.allegro.pl:28175756771",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:api.charytatywni.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:api.charytatywni.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:api.charytatywni.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:apps.developer.allegro.pl",
+      "target": "cert:*.apps.developer.allegro.pl:21881576687",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:apps.developer.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:apps.developer.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:apps.developer.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:auth.wakacje.allegro.pl",
+      "target": "cert:auth.wakacje.allegro.pl:25531806123",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:autodiscover.allegro.pl",
+      "target": "cert:mail.allegro.pl:27260173128",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:business.allegro.pl",
+      "target": "cert:*.allegro.pl:28769342784",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:business.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:business.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:business.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:charytatywni.allegro.pl",
+      "target": "cert:api.charytatywni.allegro.pl:28175756771",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:charytatywni.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:charytatywni.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:charytatywni.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:cs.allegro.pl",
+      "target": "cert:cs.allegro.pl:25543758527",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:cs.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:cs.allegro.pl",
+      "target": "kx:X25519",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:cs.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:developer.allegro.pl",
+      "target": "cert:*.developer.allegro.pl:29234619756",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:developer.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:developer.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:developer.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:edge.allegro.pl",
+      "target": "cert:*.developer.allegro.pl:29234619756",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:edge.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:edge.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:edge.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:edge.business.allegro.pl",
+      "target": "cert:edge.business.allegro.pl:23314001916",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:edge.business.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:edge.business.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:edge.business.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:img.ams.allegro.pl",
+      "target": "cert:img.ams.allegro.pl:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:img.marketing.allegro.pl",
+      "target": "cert:img.ams.allegro.pl:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:img.notifications.allegro.pl",
+      "target": "cert:img.ams.allegro.pl:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:mail.allegro.pl",
+      "target": "cert:mail.allegro.pl:27260173128",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:mail.allegro.pl",
+      "target": "service:tcp/465",
+      "label": "exposes"
+    },
+    {
+      "source": "host:mail.allegro.pl",
+      "target": "service:tcp/587",
+      "label": "exposes"
+    },
+    {
+      "source": "host:mail.allegro.pl",
+      "target": "service:tcp/993",
+      "label": "exposes"
+    },
+    {
+      "source": "host:mail.allegro.pl",
+      "target": "service:tcp/995",
+      "label": "exposes"
+    },
+    {
+      "source": "host:mail2.allegro.pl",
+      "target": "cert:mail.allegro.pl:27260173128",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:media.allegro.pl",
+      "target": "cert:*.media.allegro.pl:29417912927",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:media.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:media.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:media.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:outlook.allegro.pl",
+      "target": "cert:mail.allegro.pl:27260173128",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:redir.ams.allegro.pl",
+      "target": "cert:img.ams.allegro.pl:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:redir.marketing.allegro.pl",
+      "target": "cert:img.ams.allegro.pl:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:redir.notifications.allegro.pl",
+      "target": "cert:img.ams.allegro.pl:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:rtb.allegro.pl",
+      "target": "cert:*.rtb.allegro.pl:25840028709",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:upload.allegro.pl",
+      "target": "cert:*.developer.allegro.pl:29234619756",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:upload.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:upload.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:upload.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:upload.business.allegro.pl",
+      "target": "cert:edge.business.allegro.pl:23314001916",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:upload.business.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:upload.business.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:upload.business.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:www.ads.allegro.pl",
+      "target": "cert:rzeczyodserca.pl",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:www.ads.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:www.ads.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:www.ads.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:www.api.charytatywni.allegro.pl",
+      "target": "cert:api.charytatywni.allegro.pl:28175756771",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:www.charytatywni.allegro.pl",
+      "target": "cert:api.charytatywni.allegro.pl:28175756771",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:www.charytatywni.allegro.pl",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:www.charytatywni.allegro.pl",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:www.charytatywni.allegro.pl",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    }
+  ]
+}
