@@ -63,6 +63,22 @@ pub enum ProbeStatus {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChainEntry {
+    pub depth: u32,
+    pub certificate_id: u64,
+    pub common_name: Option<String>,
+    pub ski: Option<String>,
+    pub aki: Option<String>,
+    pub not_before: Option<DateTime<Utc>>,
+    pub not_after: Option<DateTime<Utc>>,
+    pub key_algorithm: Option<String>,
+    pub key_size: Option<i64>,
+    pub signature_key_algorithm: Option<String>,
+    pub signature_hash_algorithm: Option<String>,
+    pub issuer_ca_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Certificate {
     pub serial: String,
     pub in_ct: bool,
@@ -81,6 +97,8 @@ pub struct Certificate {
     pub sig_key_algorithm: Option<String>,
     pub sig_hash_algorithm: Option<String>,
     pub cert_signature: Option<String>,
+    #[serde(default)]
+    pub chain: Vec<ChainEntry>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -174,6 +192,7 @@ impl ServedCert {
             sig_key_algorithm: None,
             sig_hash_algorithm: None,
             cert_signature: self.cert_signature,
+            chain: Vec::new(),
         }
     }
 }
@@ -438,6 +457,50 @@ pub fn fixture() -> DomainState {
             sig_key_algorithm: Some("RSA".to_string()),
             sig_hash_algorithm: Some("SHA-256".to_string()),
             cert_signature: Some("RSA-SHA256".to_string()),
+            chain: vec![
+                ChainEntry {
+                    depth: 0,
+                    certificate_id: 9612296601,
+                    common_name: Some("www.nbp.pl".to_string()),
+                    ski: Some("aabb".to_string()),
+                    aki: None,
+                    not_before: Some(nb),
+                    not_after: Some(na),
+                    key_algorithm: Some("RSA".to_string()),
+                    key_size: Some(2048),
+                    signature_key_algorithm: Some("RSA".to_string()),
+                    signature_hash_algorithm: Some("SHA-256".to_string()),
+                    issuer_ca_name: Some("CN=DigiCert TLS RSA SHA256 2020 CA-1".to_string()),
+                },
+                ChainEntry {
+                    depth: 1,
+                    certificate_id: 90000000001,
+                    common_name: Some("DigiCert TLS RSA SHA256 2020 CA-1".to_string()),
+                    ski: Some("bbcc".to_string()),
+                    aki: Some("aabb".to_string()),
+                    not_before: Some(nb),
+                    not_after: Some(na),
+                    key_algorithm: Some("RSA".to_string()),
+                    key_size: Some(2048),
+                    signature_key_algorithm: Some("RSA".to_string()),
+                    signature_hash_algorithm: Some("SHA-256".to_string()),
+                    issuer_ca_name: Some("CN=DigiCert Global Root CA".to_string()),
+                },
+                ChainEntry {
+                    depth: 2,
+                    certificate_id: 90000000002,
+                    common_name: Some("DigiCert Global Root CA".to_string()),
+                    ski: Some("ccdd".to_string()),
+                    aki: Some("bbcc".to_string()),
+                    not_before: Some(nb),
+                    not_after: Some(na),
+                    key_algorithm: Some("RSA".to_string()),
+                    key_size: Some(2048),
+                    signature_key_algorithm: Some("RSA".to_string()),
+                    signature_hash_algorithm: Some("SHA-256".to_string()),
+                    issuer_ca_name: Some("CN=DigiCert Global Root CA".to_string()),
+                },
+            ],
         },
     );
     certs.insert(
@@ -460,6 +523,7 @@ pub fn fixture() -> DomainState {
             sig_key_algorithm: Some("RSA".to_string()),
             sig_hash_algorithm: Some("SHA-256".to_string()),
             cert_signature: Some("RSA-SHA256".to_string()),
+            chain: Vec::new(),
         },
     );
     certs.insert(
@@ -482,6 +546,7 @@ pub fn fixture() -> DomainState {
             sig_key_algorithm: Some("ECDSA".to_string()),
             sig_hash_algorithm: Some("SHA-256".to_string()),
             cert_signature: Some("ECDSA-P256".to_string()),
+            chain: Vec::new(),
         },
     );
 

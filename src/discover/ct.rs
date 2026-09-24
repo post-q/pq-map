@@ -192,6 +192,7 @@ pub fn certificates(rows: &[CtRow], now: DateTime<Utc>) -> BTreeMap<String, Cert
             sig_key_algorithm: None,
             sig_hash_algorithm: None,
             cert_signature: None,
+            chain: Vec::new(),
         });
         if let Some(id) = row.id {
             if !entry.ct_ids.contains(&id) {
@@ -260,6 +261,7 @@ pub fn certificates_from_db(rows: &[DbRow], now: DateTime<Utc>) -> BTreeMap<Stri
             sig_key_algorithm: row.sig_key_algorithm.clone(),
             sig_hash_algorithm: row.sig_hash_algorithm.clone(),
             cert_signature,
+            chain: Vec::new(),
         });
         if !entry.ct_ids.contains(&(row.cert_id as u64)) {
             entry.ct_ids.push(row.cert_id as u64);

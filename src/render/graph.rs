@@ -1,8 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use serde::Serialize;
+use chrono::{DateTime, Utc};
 
-use crate::model::{DomainState, Host, MatchKind, ProbeStatus, cert_key_name};
+use crate::model::{
+    ChainEntry, DomainState, Host, MatchKind, ProbeStatus, cert_key_name, cert_signature_from_db,
+};
+
+use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 struct Node {
@@ -12,6 +16,19 @@ struct Node {
     node_type: &'static str,
     #[serde(skip_serializing_if = "Option::is_none")]
     group: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    metadata: Option<CertMetadata>,
+}
+
+#[derive(Debug, Serialize)]
+struct CertMetadata {
+    ca_role: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    sans: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    not_before: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    not_after: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -30,9 +47,11 @@ struct Graph {
 struct CertNode {
     id: String,
     label: String,
+    metadata: Option<CertMetadata>,
     cert_signature: Option<String>,
     cert_key: Option<String>,
     issuer: Option<String>,
+    chain: Vec<ChainEntry>,
 }
 
 struct CertFacts<'a> {
@@ -45,6 +64,9 @@ struct CertFacts<'a> {
     curve: Option<&'a str>,
     issuer: Option<String>,
     identities: Vec<String>,
+    not_before: Option<DateTime<Utc>>,
+    not_after: Option<DateTime<Utc>>,
+    chain: Vec<ChainEntry>,
 }
 
 fn cert_node(f: CertFacts<'_>) -> CertNode {
@@ -53,18 +75,36 @@ fn cert_node(f: CertFacts<'_>) -> CertNode {
         Some(id) => format!("cert:{cn}:{id}"),
         None => format!("cert:{cn}"),
     };
-    let sans = f.identities.iter().filter(|i| **i != cn).count();
-    let label = match sans {
-        0 => cn,
+    let sans: Vec<String> = f.identities.iter().filter(|i| **i != cn).cloned().collect();
+    let label = match sans.len() {
+        0 => cn.clone(),
         1 => format!("{cn} +1 SAN"),
         n => format!("{cn} +{n} SANs"),
+    };
+    let metadata = CertMetadata {
+        ca_role: "leaf",
+        sans: (!sans.is_empty()).then_some(sans),
+        not_before: f.not_before,
+        not_after: f.not_after,
     };
     CertNode {
         id,
         label,
+        metadata: Some(metadata),
         cert_signature: f.cert_signature,
         cert_key: cert_key_name(f.key_alg, f.key_size, f.curve),
         issuer: f.issuer,
+        chain: f.chain,
+    }
+}
+
+fn is_self_issued(entry: &ChainEntry) -> bool {
+    match (entry.ski.as_deref(), entry.aki.as_deref()) {
+        (Some(ski), Some(aki)) if !ski.is_empty() && ski == aki => true,
+        _ => match (&entry.common_name, &entry.issuer_ca_name) {
+            (Some(cn), Some(issuer)) => ca_cn(issuer) == *cn,
+            _ => false,
+        },
     }
 }
 
@@ -130,6 +170,9 @@ fn host_cert(state: &DomainState, host: &Host) -> Option<(CertNode, &'static str
                 curve: None,
                 issuer: ct.issuer.clone(),
                 identities: ct.identities.clone(),
+                not_before: ct.not_before,
+                not_after: ct.not_after,
+                chain: ct.chain.clone(),
             },
             None => CertFacts {
                 common_name: served.common_name.clone(),
@@ -141,6 +184,9 @@ fn host_cert(state: &DomainState, host: &Host) -> Option<(CertNode, &'static str
                 curve: served.pubkey_curve.as_deref(),
                 issuer: served.issuer.clone(),
                 identities: served.identities.clone(),
+                not_before: served.not_before,
+                not_after: served.not_after,
+                chain: Vec::new(),
             },
         };
         return Some((cert_node(facts), "presents_certificate"));
@@ -170,6 +216,9 @@ fn host_cert(state: &DomainState, host: &Host) -> Option<(CertNode, &'static str
             curve: None,
             issuer: covering.issuer.clone(),
             identities: covering.identities.clone(),
+            not_before: covering.not_before,
+            not_after: covering.not_after,
+            chain: covering.chain.clone(),
         }),
         "certificate_for",
     ))
@@ -189,6 +238,7 @@ pub fn graph(state: &DomainState) -> String {
             label,
             node_type,
             group: (group != node_type).then_some(group),
+            metadata: None,
         });
     };
 
@@ -203,6 +253,7 @@ pub fn graph(state: &DomainState) -> String {
             label: host.name.clone(),
             node_type: "host",
             group: None,
+            metadata: None,
         });
 
         if exposed {
@@ -248,6 +299,11 @@ pub fn graph(state: &DomainState) -> String {
                 "pki",
                 "certificate",
             );
+            if let Some(metadata) = cert.metadata {
+                if let Some(existing) = nodes.get_mut(&cert.id) {
+                    existing.metadata = Some(metadata);
+                }
+            }
             links.insert((host_id.clone(), cert.id.clone(), cert_edge));
 
             if let Some(sig) = cert.cert_signature {
@@ -266,10 +322,62 @@ pub fn graph(state: &DomainState) -> String {
                 node(&mut nodes, &id, key.clone(), "crypto", "certificate_key");
                 links.insert((cert.id.clone(), id, "cert_key"));
             }
+            let mut prev_ca: Option<String> = cert
+                .issuer
+                .as_deref()
+                .map(|dn| format!("ca:{}", ca_slug(&ca_cn(dn))));
             if let Some(issuer) = cert.issuer {
                 let (ca_id, ca_label) = ca_id(&issuer);
                 node(&mut nodes, &ca_id, ca_label, "pki", "issuer");
-                links.insert((cert.id, ca_id, "issued_by"));
+                links.insert((cert.id.clone(), ca_id, "issued_by"));
+            }
+            for entry in cert.chain.iter().filter(|e| e.depth >= 1) {
+                let Some(cn) = entry.common_name.as_deref().filter(|c| !c.is_empty()) else {
+                    continue;
+                };
+                let ca_id = format!("ca:{}", ca_slug(cn));
+                node(&mut nodes, &ca_id, cn.to_string(), "pki", "issuer");
+                if let Some(existing) = nodes.get_mut(&ca_id) {
+                    existing.metadata = Some(CertMetadata {
+                        ca_role: if is_self_issued(entry) {
+                            "root"
+                        } else {
+                            "intermediate"
+                        },
+                        sans: None,
+                        not_before: entry.not_before,
+                        not_after: entry.not_after,
+                    });
+                }
+                if let Some(sig) = cert_signature_from_db(
+                    entry.key_algorithm.as_deref(),
+                    entry.key_size,
+                    entry.signature_key_algorithm.as_deref(),
+                    entry.signature_hash_algorithm.as_deref(),
+                ) {
+                    let id = format!("certsig:{sig}");
+                    node(
+                        &mut nodes,
+                        &id,
+                        sig.clone(),
+                        "crypto",
+                        "certificate_signature",
+                    );
+                    links.insert((ca_id.clone(), id, "cert_signature"));
+                }
+                if let Some(key) =
+                    cert_key_name(entry.key_algorithm.as_deref(), entry.key_size, None)
+                {
+                    let id = format!("certkey:{key}");
+                    node(&mut nodes, &id, key.clone(), "crypto", "certificate_key");
+                    links.insert((ca_id.clone(), id, "cert_key"));
+                }
+                if let Some(prev) = prev_ca {
+                    if prev != ca_id {
+                        links.insert((prev, ca_id.clone(), "issued_by"));
+                    }
+                }
+                prev_ca = Some(ca_id);
             }
         }
     }
@@ -351,6 +459,26 @@ mod tests {
             "cert:www.nbp.pl:9612296601".to_string(),
             "issued_by".to_string(),
             "ca:digicert-tls-rsa-sha256-2020-ca-1".to_string()
+        )));
+        assert!(e.contains(&(
+            "ca:digicert-tls-rsa-sha256-2020-ca-1".to_string(),
+            "issued_by".to_string(),
+            "ca:digicert-global-root-ca".to_string()
+        )));
+        assert!(e.contains(&(
+            "ca:digicert-tls-rsa-sha256-2020-ca-1".to_string(),
+            "cert_signature".to_string(),
+            "certsig:RSA-SHA256".to_string()
+        )));
+        assert!(e.contains(&(
+            "ca:digicert-tls-rsa-sha256-2020-ca-1".to_string(),
+            "cert_key".to_string(),
+            "certkey:RSA-2048".to_string()
+        )));
+        assert!(e.contains(&(
+            "ca:digicert-global-root-ca".to_string(),
+            "cert_signature".to_string(),
+            "certsig:RSA-SHA256".to_string()
         )));
         assert!(!e.iter().any(|(_, l, _)| l == "uses"));
     }
@@ -465,6 +593,15 @@ mod tests {
         assert_eq!(cert["type"], "pki");
         assert_eq!(cert["group"], "certificate");
         assert_eq!(cert["label"], "www.nbp.pl +1 SAN");
+        assert_eq!(cert["metadata"]["ca_role"], "leaf");
+        assert_eq!(cert["metadata"]["sans"], serde_json::json!(["nbp.pl"]));
+        assert!(cert["metadata"]["not_before"].is_string());
+        assert!(cert["metadata"]["not_after"].is_string());
+        let inter = find("ca:digicert-tls-rsa-sha256-2020-ca-1");
+        assert_eq!(inter["metadata"]["ca_role"], "intermediate");
+        assert!(inter["metadata"]["not_before"].is_string());
+        let root = find("ca:digicert-global-root-ca");
+        assert_eq!(root["metadata"]["ca_role"], "root");
         let sig = find("certsig:RSA-SHA256");
         assert_eq!(sig["type"], "crypto");
         assert_eq!(sig["group"], "certificate_signature");

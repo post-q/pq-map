@@ -161,6 +161,7 @@ mod tests {
             sig_key_algorithm: Some("RSA".to_string()),
             sig_hash_algorithm: Some("SHA-256".to_string()),
             cert_signature: Some("RSA-SHA256".to_string()),
+            chain: Vec::new(),
         };
         cert.not_before = Some(chrono::Utc::now() - chrono::Duration::days(1));
         cert.not_after = Some(chrono::Utc::now() + chrono::Duration::days(1));
