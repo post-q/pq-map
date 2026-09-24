@@ -1,0 +1,1063 @@
+{
+  "nodes": [
+    {
+      "id": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "DigiCert Global G2 TLS RSA SHA256 2020 CA1",
+      "type": "pki",
+      "group": "issuer",
+      "metadata": {
+        "ca_role": "intermediate",
+        "not_before": "2021-03-30T00:00:00Z",
+        "not_after": "2031-03-29T23:59:59Z"
+      }
+    },
+    {
+      "id": "ca:digicert-global-root-g2",
+      "label": "DigiCert Global Root G2",
+      "type": "pki",
+      "group": "issuer",
+      "metadata": {
+        "ca_role": "root",
+        "not_before": "2013-08-01T12:00:00Z",
+        "not_after": "2038-01-15T12:00:00Z"
+      }
+    },
+    {
+      "id": "cert:*.exampley.com:28769342784",
+      "label": "*.exampley.com +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "exampley.com"
+        ],
+        "not_before": "2026-08-12T00:00:00Z",
+        "not_after": "2027-02-26T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:*.apps.developer.exampley.com:21881576687",
+      "label": "*.apps.developer.exampley.com +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "apps.developer.exampley.com"
+        ],
+        "not_before": "2025-10-21T00:00:00Z",
+        "not_after": "2026-11-10T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:*.developer.exampley.com:29234619756",
+      "label": "*.developer.exampley.com +4 SANs",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "api.exampley.com",
+          "developer.exampley.com",
+          "edge.exampley.com",
+          "upload.exampley.com"
+        ],
+        "not_before": "2026-09-03T00:00:00Z",
+        "not_after": "2027-03-20T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:*.media.exampley.com:29417912927",
+      "label": "*.media.exampley.com +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "media.exampley.com"
+        ],
+        "not_before": "2026-09-14T00:00:00Z",
+        "not_after": "2027-03-31T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:*.rtb.exampley.com:25840028709",
+      "label": "*.rtb.exampley.com +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "rtb.exampley.com"
+        ],
+        "not_before": "2026-04-27T00:00:00Z",
+        "not_after": "2026-11-11T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:alior.credit-application-dev.exampley.com:26355226113",
+      "label": "alior.credit-application-dev.exampley.com",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "not_before": "2026-05-15T00:00:00Z",
+        "not_after": "2026-11-29T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:api.charytatywni.exampley.com:28175756771",
+      "label": "api.charytatywni.exampley.com +3 SANs",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "charytatywni.exampley.com",
+          "www.api.charytatywni.exampley.com",
+          "www.charytatywni.exampley.com"
+        ],
+        "not_before": "2026-07-23T00:00:00Z",
+        "not_after": "2027-02-06T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:auth.wakacje.exampley.com:25531806123",
+      "label": "auth.wakacje.exampley.com",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "not_before": "2026-04-15T00:00:00Z",
+        "not_after": "2026-10-30T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:cs.exampley.com:25543758527",
+      "label": "cs.exampley.com",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "not_before": "2026-04-16T00:00:00Z",
+        "not_after": "2026-10-31T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:edge.business.exampley.com:23314001916",
+      "label": "edge.business.exampley.com +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "upload.business.exampley.com"
+        ],
+        "not_before": "2025-12-23T00:00:00Z",
+        "not_after": "2027-01-20T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:img.ams.exampley.com:28175776482",
+      "label": "img.ams.exampley.com +5 SANs",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "img.marketing.exampley.com",
+          "img.notifications.exampley.com",
+          "redir.ams.exampley.com",
+          "redir.marketing.exampley.com",
+          "redir.notifications.exampley.com"
+        ],
+        "not_before": "2026-07-23T00:00:00Z",
+        "not_after": "2027-02-06T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:mail.exampley.com:27260173128",
+      "label": "mail.exampley.com +3 SANs",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "autodiscover.exampley.com",
+          "mail2.exampley.com",
+          "outlook.exampley.com"
+        ],
+        "not_before": "2026-06-17T00:00:00Z",
+        "not_after": "2027-01-01T23:59:59Z"
+      }
+    },
+    {
+      "id": "cert:rzeczyodserca.pl",
+      "label": "rzeczyodserca.pl +1 SAN",
+      "type": "pki",
+      "group": "certificate",
+      "metadata": {
+        "ca_role": "leaf",
+        "sans": [
+          "www.rzeczyodserca.pl"
+        ],
+        "not_before": "2025-12-23T00:00:00Z",
+        "not_after": "2027-01-14T23:59:59Z"
+      }
+    },
+    {
+      "id": "certkey:RSA",
+      "label": "RSA",
+      "type": "crypto",
+      "group": "certificate_key"
+    },
+    {
+      "id": "certkey:RSA-2048",
+      "label": "RSA-2048",
+      "type": "crypto",
+      "group": "certificate_key"
+    },
+    {
+      "id": "certsig:RSA-SHA256",
+      "label": "RSA-SHA256",
+      "type": "crypto",
+      "group": "certificate_signature"
+    },
+    {
+      "id": "cipher:AES256-GCM",
+      "label": "AES256-GCM",
+      "type": "crypto",
+      "group": "symmetric"
+    },
+    {
+      "id": "host:ads.exampley.com",
+      "label": "ads.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:alior.credit-application-dev.exampley.com",
+      "label": "alior.credit-application-dev.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:exampley.in.tmes.trendmicro.eu",
+      "label": "exampley.in.tmes.trendmicro.eu",
+      "type": "host"
+    },
+    {
+      "id": "host:exampley.com",
+      "label": "exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:api.exampley.com",
+      "label": "api.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:api.charytatywni.exampley.com",
+      "label": "api.charytatywni.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:apps.developer.exampley.com",
+      "label": "apps.developer.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:auth.wakacje.exampley.com",
+      "label": "auth.wakacje.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:autodiscover.exampley.com",
+      "label": "autodiscover.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:business.exampley.com",
+      "label": "business.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:charytatywni.exampley.com",
+      "label": "charytatywni.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:cs.exampley.com",
+      "label": "cs.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:developer.exampley.com",
+      "label": "developer.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:edge.exampley.com",
+      "label": "edge.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:edge.business.exampley.com",
+      "label": "edge.business.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:img.ams.exampley.com",
+      "label": "img.ams.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:img.marketing.exampley.com",
+      "label": "img.marketing.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:img.notifications.exampley.com",
+      "label": "img.notifications.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:mail.exampley.com",
+      "label": "mail.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:mail2.exampley.com",
+      "label": "mail2.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:media.exampley.com",
+      "label": "media.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:outlook.exampley.com",
+      "label": "outlook.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:redir.ams.exampley.com",
+      "label": "redir.ams.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:redir.marketing.exampley.com",
+      "label": "redir.marketing.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:redir.notifications.exampley.com",
+      "label": "redir.notifications.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:rtb.exampley.com",
+      "label": "rtb.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:upload.exampley.com",
+      "label": "upload.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:upload.business.exampley.com",
+      "label": "upload.business.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:www.ads.exampley.com",
+      "label": "www.ads.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:www.api.charytatywni.exampley.com",
+      "label": "www.api.charytatywni.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "host:www.charytatywni.exampley.com",
+      "label": "www.charytatywni.exampley.com",
+      "type": "host"
+    },
+    {
+      "id": "kx:X25519",
+      "label": "X25519",
+      "type": "crypto",
+      "group": "key_exchange"
+    },
+    {
+      "id": "kx:X25519MLKEM768",
+      "label": "X25519MLKEM768",
+      "type": "crypto",
+      "group": "key_exchange"
+    },
+    {
+      "id": "service:tcp/443",
+      "label": "TCP/443",
+      "type": "service",
+      "group": "tcp_service"
+    },
+    {
+      "id": "service:tcp/465",
+      "label": "SMTPS:465",
+      "type": "service",
+      "group": "tcp_service"
+    },
+    {
+      "id": "service:tcp/587",
+      "label": "SMTP:587",
+      "type": "service",
+      "group": "tcp_service"
+    },
+    {
+      "id": "service:tcp/993",
+      "label": "IMAPS:993",
+      "type": "service",
+      "group": "tcp_service"
+    },
+    {
+      "id": "service:tcp/995",
+      "label": "POP3S:995",
+      "type": "service",
+      "group": "tcp_service"
+    }
+  ],
+  "links": [
+    {
+      "source": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "target": "ca:digicert-global-root-g2",
+      "label": "issued_by"
+    },
+    {
+      "source": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "ca:digicert-global-root-g2",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "ca:digicert-global-root-g2",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:*.exampley.com:28769342784",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:*.exampley.com:28769342784",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:*.exampley.com:28769342784",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:*.apps.developer.exampley.com:21881576687",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:*.apps.developer.exampley.com:21881576687",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:*.apps.developer.exampley.com:21881576687",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:*.developer.exampley.com:29234619756",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:*.developer.exampley.com:29234619756",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:*.developer.exampley.com:29234619756",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:*.media.exampley.com:29417912927",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:*.media.exampley.com:29417912927",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:*.media.exampley.com:29417912927",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:*.rtb.exampley.com:25840028709",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:*.rtb.exampley.com:25840028709",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:*.rtb.exampley.com:25840028709",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:alior.credit-application-dev.exampley.com:26355226113",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:alior.credit-application-dev.exampley.com:26355226113",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:alior.credit-application-dev.exampley.com:26355226113",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:api.charytatywni.exampley.com:28175756771",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:api.charytatywni.exampley.com:28175756771",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:api.charytatywni.exampley.com:28175756771",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:auth.wakacje.exampley.com:25531806123",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:auth.wakacje.exampley.com:25531806123",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:auth.wakacje.exampley.com:25531806123",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:cs.exampley.com:25543758527",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:cs.exampley.com:25543758527",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:cs.exampley.com:25543758527",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:edge.business.exampley.com:23314001916",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:edge.business.exampley.com:23314001916",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:edge.business.exampley.com:23314001916",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:img.ams.exampley.com:28175776482",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:img.ams.exampley.com:28175776482",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:img.ams.exampley.com:28175776482",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:mail.exampley.com:27260173128",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:mail.exampley.com:27260173128",
+      "target": "certkey:RSA-2048",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:mail.exampley.com:27260173128",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "cert:rzeczyodserca.pl",
+      "target": "ca:digicert-global-g2-tls-rsa-sha256-2020-ca1",
+      "label": "issued_by"
+    },
+    {
+      "source": "cert:rzeczyodserca.pl",
+      "target": "certkey:RSA",
+      "label": "cert_key"
+    },
+    {
+      "source": "cert:rzeczyodserca.pl",
+      "target": "certsig:RSA-SHA256",
+      "label": "cert_signature"
+    },
+    {
+      "source": "host:ads.exampley.com",
+      "target": "cert:*.exampley.com:28769342784",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:ads.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:ads.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:ads.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:alior.credit-application-dev.exampley.com",
+      "target": "cert:alior.credit-application-dev.exampley.com:26355226113",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:exampley.com",
+      "target": "cert:*.exampley.com:28769342784",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:api.exampley.com",
+      "target": "cert:*.developer.exampley.com:29234619756",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:api.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:api.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:api.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:api.charytatywni.exampley.com",
+      "target": "cert:api.charytatywni.exampley.com:28175756771",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:api.charytatywni.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:api.charytatywni.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:api.charytatywni.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:apps.developer.exampley.com",
+      "target": "cert:*.apps.developer.exampley.com:21881576687",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:apps.developer.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:apps.developer.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:apps.developer.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:auth.wakacje.exampley.com",
+      "target": "cert:auth.wakacje.exampley.com:25531806123",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:autodiscover.exampley.com",
+      "target": "cert:mail.exampley.com:27260173128",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:business.exampley.com",
+      "target": "cert:*.exampley.com:28769342784",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:business.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:business.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:business.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:charytatywni.exampley.com",
+      "target": "cert:api.charytatywni.exampley.com:28175756771",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:charytatywni.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:charytatywni.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:charytatywni.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:cs.exampley.com",
+      "target": "cert:cs.exampley.com:25543758527",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:cs.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:cs.exampley.com",
+      "target": "kx:X25519",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:cs.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:developer.exampley.com",
+      "target": "cert:*.developer.exampley.com:29234619756",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:developer.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:developer.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:developer.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:edge.exampley.com",
+      "target": "cert:*.developer.exampley.com:29234619756",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:edge.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:edge.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:edge.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:edge.business.exampley.com",
+      "target": "cert:edge.business.exampley.com:23314001916",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:edge.business.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:edge.business.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:edge.business.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:img.ams.exampley.com",
+      "target": "cert:img.ams.exampley.com:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:img.marketing.exampley.com",
+      "target": "cert:img.ams.exampley.com:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:img.notifications.exampley.com",
+      "target": "cert:img.ams.exampley.com:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:mail.exampley.com",
+      "target": "cert:mail.exampley.com:27260173128",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:mail.exampley.com",
+      "target": "service:tcp/465",
+      "label": "exposes"
+    },
+    {
+      "source": "host:mail.exampley.com",
+      "target": "service:tcp/587",
+      "label": "exposes"
+    },
+    {
+      "source": "host:mail.exampley.com",
+      "target": "service:tcp/993",
+      "label": "exposes"
+    },
+    {
+      "source": "host:mail.exampley.com",
+      "target": "service:tcp/995",
+      "label": "exposes"
+    },
+    {
+      "source": "host:mail2.exampley.com",
+      "target": "cert:mail.exampley.com:27260173128",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:media.exampley.com",
+      "target": "cert:*.media.exampley.com:29417912927",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:media.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:media.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:media.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:outlook.exampley.com",
+      "target": "cert:mail.exampley.com:27260173128",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:redir.ams.exampley.com",
+      "target": "cert:img.ams.exampley.com:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:redir.marketing.exampley.com",
+      "target": "cert:img.ams.exampley.com:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:redir.notifications.exampley.com",
+      "target": "cert:img.ams.exampley.com:28175776482",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:rtb.exampley.com",
+      "target": "cert:*.rtb.exampley.com:25840028709",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:upload.exampley.com",
+      "target": "cert:*.developer.exampley.com:29234619756",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:upload.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:upload.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:upload.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:upload.business.exampley.com",
+      "target": "cert:edge.business.exampley.com:23314001916",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:upload.business.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:upload.business.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:upload.business.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:www.ads.exampley.com",
+      "target": "cert:rzeczyodserca.pl",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:www.ads.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:www.ads.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:www.ads.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    },
+    {
+      "source": "host:www.api.charytatywni.exampley.com",
+      "target": "cert:api.charytatywni.exampley.com:28175756771",
+      "label": "certificate_for"
+    },
+    {
+      "source": "host:www.charytatywni.exampley.com",
+      "target": "cert:api.charytatywni.exampley.com:28175756771",
+      "label": "presents_certificate"
+    },
+    {
+      "source": "host:www.charytatywni.exampley.com",
+      "target": "cipher:AES256-GCM",
+      "label": "symmetric_cipher"
+    },
+    {
+      "source": "host:www.charytatywni.exampley.com",
+      "target": "kx:X25519MLKEM768",
+      "label": "negotiated_kx"
+    },
+    {
+      "source": "host:www.charytatywni.exampley.com",
+      "target": "service:tcp/443",
+      "label": "exposes"
+    }
+  ]
+}
