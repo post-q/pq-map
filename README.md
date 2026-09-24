@@ -1,10 +1,19 @@
 # pq-map
 
-discovery and mapping of externally visible cryptographic identities and services using Certificate Transparency and DNS
+Discovery and mapping of externally visible cryptographic infrastructure using Certificate Transparency, DNS, and live TLS probing.
 
-CT estate (crt.sh certwatch DB → HTTP fallback → cache) → DNS discovery (SRV/SVCB/HTTPS, A/AAAA) → live TLS probe (rustls PQ-first, openssl fallback) → correlated text / JSON / graph output.
+Certificate discovery (crt.sh certwatch DB → HTTP fallback → cache)
+→ DNS discovery (SRV/SVCB/HTTPS, A/AAAA)
+→ live TLS probing (PQ/hybrid-first via rustls, OpenSSL fallback)
+→ correlated text, JSON, and graph output.
 
 ![pq-map graph](graph.png)
+
+`pq-map` correlates certificates, hostnames, DNS-visible services, live TLS
+configuration, certificate chains, keys, signatures, key exchange, and
+symmetric ciphers.
+
+It describes the externally observable cryptographic estate.
 
 ## Usage
 
@@ -17,6 +26,7 @@ pq-map nbp.pl --json         # full state as JSON
 pq-map nbp.pl --graph        # semantic graph JSON (see visualization below)
 pq-map nbp.pl --refresh      # force fresh CT + full re-probe
 pq-map nbp.pl --no-probe     # CT/DNS only, no TLS handshakes
+pq-map nbp.pl --ports        # discover other services (smtp/imap/...) on hosts where 443 failed
 ```
 
 Caches in `~/.cache/pq-map/`: CT 7 days, probes 24 hours. DNS resolves every run and invalidates cached probes; failed probes are cached too. `--refresh` bypasses both.
@@ -24,11 +34,21 @@ Caches in `~/.cache/pq-map/`: CT 7 days, probes 24 hours. DNS resolves every run
 ## Visualization
 
 ```
+pq-map nbp.pl --graph --ports > graph.json
 ./pq-graph.sh                 # serves ./graph.json on :8000, opens browser
 ./pq-graph.sh graph.json 9000
 ```
 
-3d-force-graph viewer
+Interactive 3D semantic graph with node search/filtering and focused
+1-hop, 2-hop, and entity-details views.
+
+#### Examples
+
+```
+./pq-graph.sh examples/mbank.json
+
+./pq-graph.sh examples/allegro.json
+```
 
 ## ENV vars
 
