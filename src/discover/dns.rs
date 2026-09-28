@@ -77,8 +77,7 @@ pub async fn discover(domain: &str, resolver: &TokioAsyncResolver) -> DnsDiscove
             out.mx.push(rec);
         }
     }
-    out.mx
-        .sort_by(|a, b| (a.priority, a.target.clone()).cmp(&(b.priority, b.target.clone())));
+    out.mx.sort_by_key(|a| (a.priority, a.target.clone()));
 
     out
 }

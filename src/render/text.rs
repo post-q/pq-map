@@ -308,8 +308,7 @@ mod tests {
     /// Cells of the last table row for `name` (host row first, DNS record rows later).
     fn last_row_cells(text: &str, name: &str) -> String {
         text.lines()
-            .filter(|l| l.starts_with(&format!("{name} ")))
-            .next_back()
+            .rfind(|l| l.starts_with(&format!("{name} ")))
             .map(|l| l.split_whitespace().collect::<Vec<_>>().join(" "))
             .unwrap_or_else(|| panic!("no row for {name}"))
     }

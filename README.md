@@ -70,7 +70,7 @@ Interactive 3D semantic graph with node search/filtering and focused
 ## Build
 
 ```
-cargo build --release    # rust 1.85+, libssl-dev
+cargo build --release    # rust 1.98+, libssl-dev
 cargo test
 ```
 
