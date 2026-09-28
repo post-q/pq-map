@@ -8,7 +8,8 @@ Certificate discovery (crt.sh certwatch DB → HTTP fallback → cache)
 → correlated text, JSON, and graph output.
 
 
-https://github.com/user-attachments/assets/ed1eb3b1-4f64-4436-b8fa-144a0a44a9f7
+
+
 
 
 
@@ -16,7 +17,7 @@ https://github.com/user-attachments/assets/ed1eb3b1-4f64-4436-b8fa-144a0a44a9f7
 configuration, certificate chains, keys, signatures, key exchange, and
 symmetric ciphers.
 
-It describes the externally observable cryptographic estate.
+It describes the externally observable cryptographic posture.
 
 ## Usage
 
