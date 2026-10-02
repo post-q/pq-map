@@ -66,63 +66,179 @@ pub fn ct_sql(domain: &str) -> Result<String, String> {
     Ok(CT_SQL_TEMPLATE.replace("{domain}", &domain))
 }
 
-pub async fn fetch_rows(domain: &str, cfg: &Config) -> Result<Vec<DbRow>, String> {
-    let mut last_error = String::from("not attempted");
-    for attempt in 1..=cfg.retries {
-        eprintln!(
-            "CT: querying certwatch DB at {}:{} (attempt {attempt}/{})",
-            cfg.db_host, cfg.db_port, cfg.retries
-        );
-        match attempt_once(domain, cfg).await {
-            Ok(rows) => return Ok(rows),
-            Err(e) => {
-                last_error = e;
-                if attempt < cfg.retries {
-                    let delay = db_backoff_secs(attempt, cfg.retry_delay);
-                    eprintln!(
-                        "CT: {last_error}; retrying in {delay}s (attempt {attempt}/{} failed)",
-                        cfg.retries
-                    );
-                    tokio::time::sleep(Duration::from_secs(delay)).await;
+/// A reused certwatch DB connection for the whole CT fetch.
+///
+/// Connecting to crt.sh is expensive, so the snapshot query and the chain
+/// query share one connection, opened lazily on first use. A query that
+/// fails or times out (no response) may still be running server-side, which
+/// poisons the connection: it is hung up, and only the failed query is
+/// re-executed on a fresh one.
+pub struct Session {
+    conninfo: String,
+    client: Option<Client>,
+    drive: Option<tokio::task::JoinHandle<()>>,
+}
+
+impl Session {
+    pub fn new(cfg: &Config) -> Self {
+        Self {
+            conninfo: format!(
+                "host={} port={} user={} dbname={}",
+                cfg.db_host, cfg.db_port, cfg.db_user, cfg.db_name
+            ),
+            client: None,
+            drive: None,
+        }
+    }
+
+    pub async fn fetch_rows(&mut self, domain: &str, cfg: &Config) -> Result<Vec<DbRow>, String> {
+        let mut last_error = String::from("not attempted");
+        for attempt in 1..=cfg.retries {
+            eprintln!(
+                "CT: querying certwatch DB at {}:{} (attempt {attempt}/{})",
+                cfg.db_host, cfg.db_port, cfg.retries
+            );
+            match self.fetch_once(domain, cfg).await {
+                Ok(rows) => return Ok(rows),
+                Err(e) => {
+                    last_error = e;
+                    if attempt < cfg.retries {
+                        let delay = db_backoff_secs(attempt, cfg.retry_delay);
+                        eprintln!(
+                            "CT: {last_error}; re-running this query in {delay}s \
+                             (attempt {attempt}/{} failed)",
+                            cfg.retries
+                        );
+                        tokio::time::sleep(Duration::from_secs(delay)).await;
+                    }
                 }
             }
         }
+        eprintln!(
+            "CT: certwatch DB unreachable after {} attempts",
+            cfg.retries
+        );
+        Err(last_error)
     }
-    eprintln!(
-        "CT: certwatch DB unreachable after {} attempts",
-        cfg.retries
-    );
-    Err(last_error)
+
+    async fn fetch_once(&mut self, domain: &str, cfg: &Config) -> Result<Vec<DbRow>, String> {
+        let client = self.ensure_connected(cfg).await?;
+        let sql = ct_sql(domain)?;
+        let result = {
+            let query = client.simple_query(&sql);
+            tokio::time::timeout(Duration::from_secs(cfg.db_query_timeout), query).await
+        };
+        match result {
+            Ok(Ok(messages)) => parse_db_rows(&messages),
+            Ok(Err(e)) => {
+                self.hang_up();
+                Err(db_err(e))
+            }
+            Err(_) => {
+                self.hang_up();
+                Err("query timeout (no response)".to_string())
+            }
+        }
+    }
+
+    pub async fn chain_rows(
+        &mut self,
+        ct_ids: &[u64],
+        cfg: &Config,
+    ) -> Result<BTreeMap<u64, Vec<ChainEntry>>, String> {
+        if ct_ids.is_empty() {
+            return Ok(BTreeMap::new());
+        }
+        let mut last_error = String::from("not attempted");
+        for attempt in 1..=cfg.retries {
+            eprintln!(
+                "CT: querying certificate chains at {}:{} (attempt {attempt}/{})",
+                cfg.db_host, cfg.db_port, cfg.retries
+            );
+            match self.chain_once(ct_ids, cfg).await {
+                Ok(chains) => return Ok(chains),
+                Err(e) => {
+                    last_error = e;
+                    if attempt < cfg.retries {
+                        let delay = db_backoff_secs(attempt, cfg.retry_delay);
+                        eprintln!(
+                            "CT: {last_error}; re-running this query in {delay}s \
+                             (attempt {attempt}/{} failed)",
+                            cfg.retries
+                        );
+                        tokio::time::sleep(Duration::from_secs(delay)).await;
+                    }
+                }
+            }
+        }
+        eprintln!("CT: chain query failed after {} attempts", cfg.retries);
+        Err(last_error)
+    }
+
+    async fn chain_once(
+        &mut self,
+        ct_ids: &[u64],
+        cfg: &Config,
+    ) -> Result<BTreeMap<u64, Vec<ChainEntry>>, String> {
+        let client = self.ensure_connected(cfg).await?;
+        let sql = chain_sql(ct_ids);
+        let result = {
+            let query = client.simple_query(&sql);
+            tokio::time::timeout(Duration::from_secs(cfg.db_query_timeout), query).await
+        };
+        match result {
+            Ok(Ok(messages)) => parse_chain_rows(&messages),
+            Ok(Err(e)) => {
+                self.hang_up();
+                Err(db_err(e))
+            }
+            Err(_) => {
+                self.hang_up();
+                Err("query timeout (no response)".to_string())
+            }
+        }
+    }
+
+    async fn ensure_connected(&mut self, cfg: &Config) -> Result<&Client, String> {
+        if self.client.is_none() {
+            eprintln!(
+                "CT: connecting to certwatch DB at {}:{}",
+                cfg.db_host, cfg.db_port
+            );
+            let connect = tokio_postgres::connect(&self.conninfo, NoTls);
+            let (client, connection) =
+                tokio::time::timeout(Duration::from_secs(cfg.db_connect_timeout), connect)
+                    .await
+                    .map_err(|_| "connect timeout".to_string())?
+                    .map_err(db_err)?;
+            self.drive = Some(tokio::spawn(async move {
+                if let Err(e) = connection.await {
+                    eprintln!("CT: db connection dropped: {}", db_err(e));
+                }
+            }));
+            self.client = Some(client);
+        }
+        Ok(self.client.as_ref().unwrap())
+    }
+
+    fn hang_up(&mut self) {
+        if let Some(drive) = self.drive.take() {
+            drive.abort();
+        }
+        self.client = None;
+    }
+}
+
+impl Drop for Session {
+    fn drop(&mut self) {
+        self.hang_up();
+    }
 }
 
 pub fn db_backoff_secs(attempt: u32, retry_delay: u64) -> u64 {
     retry_delay
         .saturating_mul(1u64 << (attempt + 1).min(6))
         .min(60)
-}
-
-async fn attempt_once(domain: &str, cfg: &Config) -> Result<Vec<DbRow>, String> {
-    let conninfo = format!(
-        "host={} port={} user={} dbname={}",
-        cfg.db_host, cfg.db_port, cfg.db_user, cfg.db_name
-    );
-    let connect = tokio_postgres::connect(&conninfo, NoTls);
-    let (client, connection) =
-        tokio::time::timeout(Duration::from_secs(cfg.db_connect_timeout), connect)
-            .await
-            .map_err(|_| "connect timeout".to_string())?
-            .map_err(db_err)?;
-    let drive = tokio::spawn(async move {
-        if let Err(e) = connection.await {
-            eprintln!("CT: db connection dropped: {}", db_err(e));
-        }
-    });
-
-    let rows = query_once(&client, domain, cfg).await;
-
-    drop(client);
-    let _ = drive.await;
-    rows
 }
 
 const CHAIN_SQL_TEMPLATE: &str = "
@@ -245,78 +361,6 @@ fn chain_sql(ct_ids: &[u64]) -> String {
     CHAIN_SQL_TEMPLATE.replace("{ids}", &ids)
 }
 
-pub async fn chain_rows(
-    ct_ids: &[u64],
-    cfg: &Config,
-) -> Result<BTreeMap<u64, Vec<ChainEntry>>, String> {
-    if ct_ids.is_empty() {
-        return Ok(BTreeMap::new());
-    }
-    let mut last_error = String::from("not attempted");
-    for attempt in 1..=cfg.retries {
-        eprintln!(
-            "CT: querying certificate chains at {}:{} (attempt {attempt}/{})",
-            cfg.db_host, cfg.db_port, cfg.retries
-        );
-        match chain_attempt_once(ct_ids, cfg).await {
-            Ok(chains) => return Ok(chains),
-            Err(e) => {
-                last_error = e;
-                if attempt < cfg.retries {
-                    let delay = db_backoff_secs(attempt, cfg.retry_delay);
-                    eprintln!(
-                        "CT: {last_error}; retrying in {delay}s (attempt {attempt}/{} failed)",
-                        cfg.retries
-                    );
-                    tokio::time::sleep(Duration::from_secs(delay)).await;
-                }
-            }
-        }
-    }
-    eprintln!("CT: chain query failed after {} attempts", cfg.retries);
-    Err(last_error)
-}
-
-async fn chain_attempt_once(
-    ct_ids: &[u64],
-    cfg: &Config,
-) -> Result<BTreeMap<u64, Vec<ChainEntry>>, String> {
-    let conninfo = format!(
-        "host={} port={} user={} dbname={}",
-        cfg.db_host, cfg.db_port, cfg.db_user, cfg.db_name
-    );
-    let connect = tokio_postgres::connect(&conninfo, NoTls);
-    let (client, connection) =
-        tokio::time::timeout(Duration::from_secs(cfg.db_connect_timeout), connect)
-            .await
-            .map_err(|_| "connect timeout".to_string())?
-            .map_err(db_err)?;
-    let drive = tokio::spawn(async move {
-        if let Err(e) = connection.await {
-            eprintln!("CT: db connection dropped: {}", db_err(e));
-        }
-    });
-
-    let sql = chain_sql(ct_ids);
-    let query = client.simple_query(&sql);
-    let messages = tokio::time::timeout(Duration::from_secs(cfg.db_query_timeout), query)
-        .await
-        .map_err(|_| "query timeout".to_string())?
-        .map_err(db_err)?;
-
-    let mut chains: BTreeMap<u64, Vec<ChainEntry>> = BTreeMap::new();
-    for m in &messages {
-        if let SimpleQueryMessage::Row(r) = m {
-            let (leaf_id, entry) = parse_chain_row(r)?;
-            chains.entry(leaf_id).or_default().push(entry);
-        }
-    }
-
-    drop(client);
-    let _ = drive.await;
-    Ok(chains)
-}
-
 fn parse_chain_row(r: &tokio_postgres::SimpleQueryRow) -> Result<(u64, ChainEntry), String> {
     let leaf_id: u64 = r
         .get(0)
@@ -348,15 +392,9 @@ fn parse_chain_row(r: &tokio_postgres::SimpleQueryRow) -> Result<(u64, ChainEntr
     Ok((leaf_id, entry))
 }
 
-async fn query_once(client: &Client, domain: &str, cfg: &Config) -> Result<Vec<DbRow>, String> {
-    let sql = ct_sql(domain)?;
-    let query = client.simple_query(&sql);
-    let rows = tokio::time::timeout(Duration::from_secs(cfg.db_query_timeout), query)
-        .await
-        .map_err(|_| "query timeout".to_string())?
-        .map_err(db_err)?;
-
-    rows.iter()
+fn parse_db_rows(messages: &[SimpleQueryMessage]) -> Result<Vec<DbRow>, String> {
+    messages
+        .iter()
         .filter_map(|m| match m {
             SimpleQueryMessage::Row(r) => Some(r),
             _ => None,
@@ -381,6 +419,19 @@ async fn query_once(client: &Client, domain: &str, cfg: &Config) -> Result<Vec<D
             })
         })
         .collect()
+}
+
+fn parse_chain_rows(
+    messages: &[SimpleQueryMessage],
+) -> Result<BTreeMap<u64, Vec<ChainEntry>>, String> {
+    let mut chains: BTreeMap<u64, Vec<ChainEntry>> = BTreeMap::new();
+    for m in messages {
+        if let SimpleQueryMessage::Row(r) = m {
+            let (leaf_id, entry) = parse_chain_row(r)?;
+            chains.entry(leaf_id).or_default().push(entry);
+        }
+    }
+    Ok(chains)
 }
 
 fn db_err(e: tokio_postgres::Error) -> String {
