@@ -1060,6 +1060,7 @@ dependencies = [
  "tokio-postgres",
  "tokio-rustls",
  "ureq",
+ "url",
  "x509-parser",
 ]
 
