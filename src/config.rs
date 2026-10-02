@@ -43,7 +43,7 @@ impl Config {
         };
         Self {
             cache_ttl: var("CT_CACHE_TTL", 2_592_000), // 30 days
-            retries: var("CT_RETRIES", 5).max(1) as u32,
+            retries: var("CT_RETRIES", 10).max(1) as u32,
             retry_delay: var("CT_RETRY_DELAY", 2),
             connect_timeout: var("CT_CONNECT_TIMEOUT", 10),
             max_time: var("CT_MAX_TIME", 60),
