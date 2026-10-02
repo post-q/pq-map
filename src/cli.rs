@@ -33,6 +33,23 @@ Options:
   -h, --help  this help
 ";
 
+pub fn normalize_domain(raw: &str) -> Option<String> {
+    let raw = raw.trim();
+    let raw = raw.strip_prefix("*.").unwrap_or(raw);
+    let candidate = if raw.contains("://") {
+        raw.to_string()
+    } else {
+        format!("https://{raw}")
+    };
+    let url = url::Url::parse(&candidate).ok()?;
+    let host = url.host_str()?.trim_end_matches('.').to_ascii_lowercase();
+    let host = match host.strip_prefix("www.") {
+        Some(rest) if rest.contains('.') => rest.to_string(),
+        _ => host,
+    };
+    (!host.is_empty()).then_some(host)
+}
+
 pub fn run() -> i32 {
     let mut domain: Option<String> = None;
     let mut mode = Mode::Combined;
@@ -83,12 +100,14 @@ pub fn run() -> i32 {
         }
     }
 
-    let Some(domain) = domain else {
+    let Some(raw) = domain else {
         eprint!("{USAGE}");
         return 2;
     };
-    let domain = domain.to_lowercase();
-    let domain = domain.strip_suffix('.').unwrap_or(&domain).to_string();
+    let Some(domain) = normalize_domain(&raw) else {
+        eprintln!("ERROR: cannot derive a domain from: {raw}");
+        return 2;
+    };
 
     let cfg = Config::from_env();
     let runtime = match tokio::runtime::Builder::new_multi_thread()
@@ -132,5 +151,49 @@ pub fn run() -> i32 {
             eprintln!("ERROR: {e}");
             1
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_domain;
+
+    #[test]
+    fn strips_scheme_path_and_www() {
+        assert_eq!(
+            normalize_domain("https://www.example.com/").as_deref(),
+            Some("example.com")
+        );
+    }
+
+    #[test]
+    fn accepts_bare_hosts_and_ports() {
+        assert_eq!(normalize_domain("nbp.pl").as_deref(), Some("nbp.pl"));
+        assert_eq!(
+            normalize_domain("WWW.Example.COM.:8443").as_deref(),
+            Some("example.com")
+        );
+    }
+
+    #[test]
+    fn strips_userinfo_query_and_wildcard() {
+        assert_eq!(
+            normalize_domain("https://user:pw@example.com:8443/a?b=1#c").as_deref(),
+            Some("example.com")
+        );
+        assert_eq!(
+            normalize_domain("*.sub.example.com").as_deref(),
+            Some("sub.example.com")
+        );
+    }
+
+    #[test]
+    fn keeps_single_label_www_hosts() {
+        assert_eq!(normalize_domain("www.com").as_deref(), Some("www.com"));
+    }
+
+    #[test]
+    fn rejects_empty_input() {
+        assert_eq!(normalize_domain("   "), None);
     }
 }
