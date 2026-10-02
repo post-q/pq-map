@@ -25,7 +25,7 @@ Modes:
   --json      full state as JSON
 
 Options:
-  --refresh   force a fresh CT snapshot (bypasses the 7-day cache)
+  --refresh   force a fresh CT snapshot (bypasses the 30-day cache)
   --no-probe  skip live TLS probing
   --ports     discover services on alternative ports for hosts whose 443 is
               closed: family-driven port list (mx -> 465/587/25, mail -> 993/995/
