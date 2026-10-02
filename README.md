@@ -34,7 +34,7 @@ pq-map nbp.pl --no-probe     # CT/DNS only, no TLS handshakes
 pq-map nbp.pl --ports        # discover other services (smtp/imap/...) on hosts where 443 failed
 ```
 
-Caches in `~/.cache/pq-map/`: CT 7 days, probes 24 hours. DNS resolves every run and invalidates cached probes; failed probes are cached too. `--refresh` bypasses both.
+Caches in `~/.cache/pq-map/`: CT 30 days, probes 24 hours. DNS resolves every run and invalidates cached probes; failed probes are cached too. `--refresh` bypasses both.
 
 ## Visualization
 
