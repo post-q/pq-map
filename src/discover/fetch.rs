@@ -50,11 +50,12 @@ pub async fn obtain(domain: &str, cfg: &Config, refresh: bool) -> Result<FetchOu
         }
     }
 
-    match ctdb::fetch_rows(domain, cfg).await {
+    let mut session = ctdb::Session::new(cfg);
+    match session.fetch_rows(domain, cfg).await {
         Ok(rows) if !rows.is_empty() => {
             let certs = ct::certificates_from_db(&rows, Utc::now());
             if !certs.is_empty() {
-                let certs = attach_chains(domain, refresh, certs, cfg).await;
+                let certs = attach_chains(domain, refresh, certs, cfg, &mut session).await;
                 store(&file, "db", &certs);
                 return Ok(FetchOutcome {
                     certs,
@@ -108,6 +109,7 @@ async fn attach_chains(
     refresh: bool,
     mut certs: BTreeMap<String, Certificate>,
     cfg: &Config,
+    session: &mut ctdb::Session,
 ) -> BTreeMap<String, Certificate> {
     let leaf_ids: Vec<u64> = {
         let mut ids: Vec<u64> = certs
@@ -136,7 +138,7 @@ async fn attach_chains(
         }
     }
 
-    match ctdb::chain_rows(&leaf_ids, cfg).await {
+    match session.chain_rows(&leaf_ids, cfg).await {
         Ok(chains) => {
             if !chains.is_empty() {
                 chain_cache::store(domain, &chains);
