@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>pq-map graph</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/3d-force-graph@1.80.1"></script>
+</head>
+
+<body>
+
+<div id="graph"></div>
+
+<div id="legend">
+  Interactive topology of observed cryptographic relationships.
+</div>
+
+<div id="node-browser">
+  <div id="node-browser-header">
+    <div id="node-browser-title">Nodes</div>
+    <div id="node-browser-count"></div>
+  </div>
+  <div id="node-search-wrap">
+    <input id="node-search" type="search" autocomplete="off" spellcheck="false"
+           placeholder="Search nodes, e.g. host allegro">
+  </div>
+  <div id="node-role-filters"></div>
+  <div id="node-list"></div>
+</div>
+
+<div id="controls">
+  <div id="selection">Full graph</div>
+  <button id="hop1" disabled title="Select a node first; then show its direct neighbours">1 hop</button>
+  <button id="details" disabled title="Show the selected entity's semantic details without expanding through shared nodes">Details</button>
+  <button id="hop2" disabled title="Select a node first; then show neighbours-of-neighbours">2 hops</button>
+  <button id="back" class="primary" hidden title="Return to the full graph and restore the view from before drill-down">Back</button>
+  <button id="resetView" title="Return to the full graph and restore the initial view">Reset view</button>
+  <button id="links" title="Show or hide relationship lines in the full graph. Hidden by default on very large inventories for smooth rendering.">Show edges</button>
+</div>
+
+<script type="module" src="js/main.js"></script>
+
+</body>
+</html>
