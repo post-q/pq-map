@@ -1,0 +1,258 @@
+    html, body, #graph {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #050510;
+    }
+
+    #legend {
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      z-index: 10;
+      padding: 10px 13px;
+      background: rgba(10,10,20,.75);
+      color: #ddd;
+      font: 12px sans-serif;
+      line-height: 1.6;
+      pointer-events: none;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 8px;
+      backdrop-filter: blur(8px);
+    }
+
+    #controls {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px;
+      background: rgba(10,10,20,.78);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.22);
+      font: 12px sans-serif;
+    }
+
+    #controls button {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.045);
+      color: rgba(255,255,255,.82);
+      padding: 7px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      font: inherit;
+      transition: background .12s ease, border-color .12s ease, color .12s ease;
+    }
+
+    #controls button:hover {
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.18);
+      color: #fff;
+    }
+
+    #controls button.active {
+      background: rgba(124,167,255,.20);
+      border-color: rgba(124,167,255,.55);
+      color: #dbe7ff;
+    }
+
+    #controls button.primary {
+      background: rgba(255,255,255,.10);
+    }
+
+    #selection {
+      max-width: 290px;
+      margin-right: 4px;
+      padding: 0 7px;
+      color: rgba(255,255,255,.60);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #selection strong {
+      color: rgba(255,255,255,.90);
+      font-weight: 600;
+    }
+
+    #node-browser {
+      position: absolute;
+      right: 14px;
+      top: 64px;
+      z-index: 20;
+      width: min(360px, calc(100vw - 28px));
+      max-height: calc(100vh - 108px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: rgba(10,10,20,.82);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.22);
+      color: rgba(255,255,255,.82);
+      font: 12px sans-serif;
+    }
+
+    #node-browser-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 11px 7px;
+    }
+
+    #node-browser-title {
+      color: rgba(255,255,255,.92);
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+
+    #node-browser-count {
+      color: rgba(255,255,255,.46);
+      white-space: nowrap;
+    }
+
+    #node-search-wrap {
+      padding: 0 9px 8px;
+    }
+
+    #node-role-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 0 9px 9px;
+    }
+
+    .node-role-filter {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 999px;
+      padding: 4px 7px;
+      background: rgba(255,255,255,.035);
+      color: rgba(255,255,255,.52);
+      cursor: pointer;
+      font: inherit;
+      font-size: 10px;
+      line-height: 1.1;
+    }
+
+    .node-role-filter:hover {
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.85);
+    }
+
+    .node-role-filter.active {
+      border-color: rgba(124,167,255,.55);
+      background: rgba(124,167,255,.17);
+      color: #dbe7ff;
+    }
+
+    #node-search {
+      box-sizing: border-box;
+      width: 100%;
+      appearance: none;
+      outline: none;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 7px;
+      padding: 8px 9px;
+      background: rgba(255,255,255,.045);
+      color: rgba(255,255,255,.92);
+      font: inherit;
+    }
+
+    #node-search:focus {
+      border-color: rgba(124,167,255,.58);
+      background: rgba(255,255,255,.07);
+    }
+
+    #node-search::placeholder {
+      color: rgba(255,255,255,.32);
+    }
+
+    #node-list {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+
+    .node-result {
+      display: grid;
+      grid-template-columns: 10px minmax(0, 1fr);
+      gap: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,.045);
+      background: transparent;
+      color: rgba(255,255,255,.80);
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .node-result:hover,
+    .node-result.active {
+      background: rgba(124,167,255,.11);
+      color: #fff;
+    }
+
+    .node-result-dot {
+      width: 7px;
+      height: 7px;
+      margin-top: 4px;
+      border-radius: 50%;
+      background: var(--node-color, #999);
+      box-shadow: 0 0 7px color-mix(in srgb, var(--node-color, #999) 65%, transparent);
+    }
+
+    .node-result-main {
+      min-width: 0;
+    }
+
+    .node-result-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .node-result-alias {
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: rgba(255,255,255,.58);
+    }
+
+    .node-result-alias::before {
+      content: "↳ ";
+      color: rgba(255,255,255,.32);
+    }
+
+    .node-result-meta {
+      margin-top: 2px;
+      color: rgba(255,255,255,.38);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    #node-list-empty {
+      padding: 14px 11px;
+      color: rgba(255,255,255,.42);
+    }
+
+    .node-list-more {
+      padding: 10px 11px;
+      color: rgba(255,255,255,.42);
+      font-size: 11px;
+      text-align: center;
+    }
