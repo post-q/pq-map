@@ -1,4 +1,28 @@
 # Changelog
+## 0.2.1 - 2026-10-03
+
+### Bug Fixes
+- Keep cache for 1 month
+- Retry 10 times
+- Normalize domain
+- Reuse the same conn
+
+### Documentation
+- Update README
+- Update README.md
+- Update README.md
+
+### Features
+- Refine pq-graph
+
+### Miscellaneous Tasks
+- Add tag_prefix
+- Update README.md
+- Release pq-map version 0.2.1
+
+### Other
+- Align with Rust 1.91
+
 ## 0.2.0 - 2026-09-24
 
 ### Bug Fixes
