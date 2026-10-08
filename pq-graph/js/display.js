@@ -89,6 +89,75 @@ function displayLabel(node) {
   }
 }
 
+let redactEnabled = false;
+
+function redactSplit(text) {
+  const value = String(text || "");
+
+  const annotation = value.match(/\s(\+\s*\d+.*|·\s*\d+\s+\S+)\s*$/);
+  const domain = annotation
+    ? value.slice(0, value.length - annotation[0].length)
+    : value;
+
+  const parts = domain
+    .split(".")
+    .map(part => part.trim())
+    .filter(Boolean);
+
+  if (parts.length < 2) return null;
+
+  const cut = parts.length - 2;
+  const hidden = parts.slice(cut).join(".");
+
+  if (/\s/.test(hidden)) return null;
+
+  return {
+    visible: cut ? `${parts.slice(0, cut).join(".")}.` : "",
+    hidden,
+    annotation: annotation ? annotation[0] : ""
+  };
+}
+
+function displayLabelSplit(label) {
+  const match = String(label || "").match(/^([\s\S]*? · )([\s\S]*)$/);
+  return {
+    prefix: match ? match[1] : "",
+    rest: match ? match[2] : String(label || "")
+  };
+}
+
+function redactHtml(text) {
+  const parts = redactSplit(text);
+  if (!parts) return text;
+
+  return `${parts.visible}<span class="tz">${parts.hidden}</span>${parts.annotation}`;
+}
+
+function redactNodeHtml(node) {
+  const label = displayLabel(node);
+  const split = displayLabelSplit(label);
+  const parts = redactSplit(split.rest);
+  if (!parts) return label;
+
+  return `${split.prefix}${parts.visible}<span class="tz">${parts.hidden}</span>${parts.annotation}`;
+}
+
+function redactSpriteText(text) {
+  if (!redactEnabled) return text;
+
+  const split = displayLabelSplit(text);
+  const parts = redactSplit(split.rest);
+  if (!parts) return text;
+
+  return `${split.prefix}${parts.visible}${"▒".repeat(parts.hidden.length)}${parts.annotation}`;
+}
+
+function toggleRedaction() {
+  redactEnabled = !redactEnabled;
+  document.body.classList.toggle("redact", redactEnabled);
+  Graph.nodeThreeObject(Graph.nodeThreeObject());
+}
+
 
 /* ---------------------------------------------------------
  * SEMANTIC POSITION

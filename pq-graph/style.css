@@ -256,3 +256,17 @@
       font-size: 11px;
       text-align: center;
     }
+
+    .tz {
+      transition: filter .15s ease;
+    }
+
+    body.redact .tz {
+      filter: blur(3.5px);
+    }
+
+    body.clean #legend,
+    body.clean #node-browser,
+    body.clean #controls {
+      display: none;
+    }

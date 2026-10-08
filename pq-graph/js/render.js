@@ -326,8 +326,8 @@ function makeText(node) {
 
   const selected = isSelectedNode(node);
   const text = selected
-    ? `● SELECTED\n${displayLabel(node)}`
-    : displayLabel(node);
+    ? `● SELECTED\n${redactSpriteText(displayLabel(node))}`
+    : redactSpriteText(displayLabel(node));
 
   const sprite = new SpriteText(text);
   sprite.material.depthWrite = false;
@@ -425,7 +425,7 @@ const Graph =
   if (node._aggregate) {
     const kind = node._aggregateRole === "host" ? "HOST GROUP" : "CERT GROUP";
     const lines = [
-      `<b>${kind} · ${node.label}</b>`,
+      `<b>${kind} · ${redactHtml(node.label)}</b>`,
       "",
       `<span style="opacity:.62">${node._aggregateCount} underlying nodes</span>`
     ];
@@ -435,7 +435,7 @@ const Graph =
       for (const c of connections.slice(0, 24)) {
         lines.push(
           `<span style="opacity:.55">[${relationForPerspective(c.relation, c.outgoing)}]</span> ` +
-          `${displayLabel(c.node)}`
+          `${redactNodeHtml(c.node)}`
         );
       }
       if (connections.length > 24) {
@@ -448,7 +448,7 @@ const Graph =
 
   if (role(node) === "host" && node.compactedHost && node.aliases?.length) {
     const lines = [
-      `<b>HOST · ${node.label}</b>`,
+      `<b>HOST · ${redactHtml(node.label)}</b>`,
       "",
       `<span style="opacity:.65">[aliases]</span>`
     ];
@@ -459,7 +459,7 @@ const Graph =
         : "none observed";
 
       lines.push(
-        `${alias.label} <span style="opacity:.72">(cert: ${certText})</span>`
+        `${redactHtml(alias.label)} <span style="opacity:.72">(cert: ${certText})</span>`
       );
     }
 
@@ -482,7 +482,7 @@ const Graph =
 
         lines.push(
           `<span style="opacity:.65">[${relationForPerspective(c.relation, c.outgoing)}]</span> ` +
-          `${value}`
+          `${redactHtml(value)}`
         );
       }
     }
@@ -500,7 +500,7 @@ const Graph =
       .replace(/\s+\+\d+\s+SANs?$/i, "");
 
     const lines = [
-      `<b>CERT · ${certLabel}</b>`,
+      `<b>CERT · ${redactHtml(certLabel)}</b>`,
       ""
     ];
 
@@ -581,7 +581,7 @@ const Graph =
       for (const c of other) {
         lines.push(
           `<span style="opacity:.55">${relationForPerspective(c.relation, c.outgoing)}</span> ` +
-          `${displayLabel(c.node)}`
+          `${redactNodeHtml(c.node)}`
         );
       }
     }
@@ -599,7 +599,7 @@ const Graph =
         `<span style="opacity:.58;font-weight:600">Hosts using this certificate (${hostNames.length})</span>`
       );
       for (const host of hostNames) {
-        lines.push(`<span style="opacity:.78">&nbsp;&nbsp;${host}</span>`);
+        lines.push(`<span style="opacity:.78">&nbsp;&nbsp;${redactHtml(host)}</span>`);
       }
     }
 
@@ -609,7 +609,7 @@ const Graph =
         `<span style="opacity:.58;font-weight:600">Hostnames covered by certificate (${sans.length})</span>`
       );
       for (const san of sans) {
-        lines.push(`<span style="opacity:.78">&nbsp;&nbsp;${san}</span>`);
+        lines.push(`<span style="opacity:.78">&nbsp;&nbsp;${redactHtml(san)}</span>`);
       }
     }
 
@@ -617,14 +617,14 @@ const Graph =
   }
 
   const lines = [
-    `<b>${displayLabel(node)}</b>`,
+    `<b>${redactNodeHtml(node)}</b>`,
     ""
   ];
 
   for (const c of connections) {
     lines.push(
       `<span style="opacity:.65">[${relationForPerspective(c.relation, c.outgoing)}]</span> ` +
-      `${displayLabel(c.node)}`
+      `${redactNodeHtml(c.node)}`
     );
   }
 
