@@ -417,6 +417,5 @@ legendElement.innerHTML =
       `${overviewStats.hostClusters}/${overviewStats.totalHosts} host entries · ` +
       `${overviewStats.certificateClusters}/${overviewStats.totalCertificates} certificate entries · ` +
       `cluster min HOST ${overviewStats.hostClusterMin}, CERT ${overviewStats.certificateClusterMin}.</span>`
-    : ``) +
-  `<br><span style="opacity:.45">D · demo rotation</span>`;
+    : ``);
 
