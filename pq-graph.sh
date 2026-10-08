@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC="$ROOT/pq-graph"
 FILE="${1:-graph.json}"
-PORT="${PORT:-8000}"
+PORT="${2:-${PORT:-8000}}"
 MODULES=(data overview display render search camera investigate main)
 
 [[ -f "$FILE" ]] || { echo "Missing file: $FILE" >&2; exit 1; }
