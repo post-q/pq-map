@@ -293,14 +293,14 @@ function renderNodeBrowser() {
 
       const label = document.createElement("div");
       label.className = "node-result-label";
-      label.textContent = node.label || node.id;
+      label.innerHTML = redactHtml(node.label || node.id);
 
       main.appendChild(label);
 
       if (secondary) {
         const alias = document.createElement("div");
         alias.className = "node-result-alias";
-        alias.textContent = secondary.label || secondary.id;
+        alias.innerHTML = redactHtml(secondary.label || secondary.id);
         alias.title = displayLabel(secondary);
         main.appendChild(alias);
       }
@@ -363,11 +363,30 @@ nodeSearchInput.addEventListener("keydown", event => {
   // Keep typing/search shortcuts from leaking into graph-level key handling.
   event.stopPropagation();
 
+  if (event.repeat) return;
+
   if (event.key === "Escape" && nodeSearchInput.value) {
     nodeSearchInput.value = "";
     clearTimeout(nodeSearchTimer);
     nodeSearchQuery = "";
     renderNodeBrowser();
+    return;
+  }
+
+  // An empty search box has nothing to type into; let the graph-level
+  // shortcuts (P, D, C) work from it instead of being swallowed.
+  if (!nodeSearchInput.value && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    if (event.key === "p" || event.key === "P") {
+      toggleRedaction();
+    } else if (event.key === "d" || event.key === "D") {
+      if (demoRotating) {
+        stopDemo();
+      } else {
+        startDemo();
+      }
+    } else if (event.key === "c" || event.key === "C") {
+      document.body.classList.toggle("clean");
+    }
   }
 });
 

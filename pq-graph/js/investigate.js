@@ -197,7 +197,7 @@ function updateControls() {
     .filter(Boolean);
 
   selectionLabel.innerHTML = selectedNodes.length
-    ? selectedNodes.map(node => `<strong>${displayLabel(node)}</strong>`).join(" + ")
+    ? selectedNodes.map(node => `<strong>${redactNodeHtml(node)}</strong>`).join(" + ")
     : "Selection";
 }
 
@@ -385,6 +385,14 @@ window.addEventListener("keydown", event => {
   if (event.repeat) return;
 
   if (
+    (event.key === "i" || event.key === "I") &&
+    !event.ctrlKey && !event.metaKey && !event.altKey
+  ) {
+    toggleRedaction();
+    return;
+  }
+
+  if (
     (event.key === "d" || event.key === "D") &&
     !event.ctrlKey && !event.metaKey && !event.altKey
   ) {
@@ -393,6 +401,14 @@ window.addEventListener("keydown", event => {
     } else {
       startDemo();
     }
+    return;
+  }
+
+  if (
+    (event.key === "c" || event.key === "C") &&
+    !event.ctrlKey && !event.metaKey && !event.altKey
+  ) {
+    document.body.classList.toggle("clean");
     return;
   }
 
