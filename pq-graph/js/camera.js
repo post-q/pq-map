@@ -32,21 +32,20 @@ function restoreCamera(saved, duration = 700) {
   });
 }
 
-const DEMO_ROTATION_SPEED = 0.12;
-
-const demoAxis = (vector => {
-  const length = Math.hypot(vector.x, vector.y, vector.z);
-  return {
-    x: vector.x / length,
-    y: vector.y / length,
-    z: vector.z / length
-  };
-})({ x: 0.25, y: 1, z: 0.15 });
+const DEMO_ROTATION_SPEED = 0.21;
 
 let demoRotating = false;
 let demoLastFrame = null;
+let demoSmoothedDelta = 0;
+let demoAxis = { x: 0, y: 1, z: 0 };
 
-function rotateCamera(delta) {
+function captureDemoAxis() {
+  const e = Graph.camera().matrixWorld.elements;
+  const len = Math.hypot(e[4], e[5], e[6]) || 1;
+  demoAxis = { x: e[4] / len, y: e[5] / len, z: e[6] / len };
+}
+
+function orbitAroundVertical(delta) {
   const camera = Graph.camera();
   const target = Graph.controls().target;
 
@@ -74,12 +73,13 @@ function rotateCamera(delta) {
 function demoFrame(now) {
   if (!demoRotating) return;
 
-  const delta = demoLastFrame === null
-    ? 0
-    : Math.min((now - demoLastFrame) / 1000, 0.05);
+  if (demoLastFrame !== null) {
+    const delta = (now - demoLastFrame) / 1000;
+    demoSmoothedDelta = demoSmoothedDelta * 0.8 + Math.min(delta, 0.25) * 0.2;
+    orbitAroundVertical(DEMO_ROTATION_SPEED * Math.min(demoSmoothedDelta, 0.1));
+  }
 
   demoLastFrame = now;
-  rotateCamera(delta);
   requestAnimationFrame(demoFrame);
 }
 
@@ -88,11 +88,17 @@ function startDemo() {
 
   demoRotating = true;
   demoLastFrame = null;
+  demoSmoothedDelta = 1 / 60;
+  captureDemoAxis();
+  Graph.controls().noRotate = true;
   requestAnimationFrame(demoFrame);
 }
 
 function stopDemo() {
+  if (!demoRotating) return;
+
   demoRotating = false;
+  Graph.controls().noRotate = false;
 }
 
 document.getElementById("graph").addEventListener("pointerdown", stopDemo);
