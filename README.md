@@ -9,7 +9,7 @@ Certificate discovery (crt.sh certwatch DB → HTTP fallback → cache)
 
 
 
-
+https://github.com/user-attachments/assets/1206db15-1b80-4d56-8a4f-e2165bc9b3ae
 
 
 
