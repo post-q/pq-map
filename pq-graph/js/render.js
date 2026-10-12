@@ -45,6 +45,18 @@ function linkVisibilityAccessor(link) {
   return linksVisible();
 }
 
+function linkIsSelected(link) {
+  if (highlightLinks.has(link)) return true;
+
+  if (isInvestigating()) {
+    const sourceId = endpointId(link.source);
+    const targetId = endpointId(link.target);
+    return selectedNodeIds.has(sourceId) || selectedNodeIds.has(targetId);
+  }
+
+  return false;
+}
+
 
 /* ---------------------------------------------------------
  * COLORS
@@ -55,31 +67,23 @@ function baseColor(node) {
   switch (role(node)) {
 
     case "host":
-      return "#7ca7ff";
+      return "#568aff";
 
     case "certificate":
-      return "#c9c9d2";
+      return "#a5d8ff";
 
     case "root_ca":
-      return "#ff8c42";
-
     case "intermediate_ca":
-      return "#ffb65c";
+      return "#ffbf55";
 
     case "certificate_key":
-      return "#dca6ff";
-
     case "certificate_signature":
-      return "#ff8fa3";
-
     case "key_exchange":
-      return "#67e8c2";
-
     case "symmetric":
-      return "#70c9ff";
+      return "#b18cff";
 
     case "service":
-      return "#ffd866";
+      return "#35d9e8";
 
     default:
       return "#999999";
@@ -190,7 +194,7 @@ function nodeColor(node) {
   if (hasActiveSearch()) {
     return isSearchMatch(node)
       ? "#ffffff"
-      : "#343440";
+      : "#35415c";
   }
 
   return baseColor(node);
@@ -366,6 +370,8 @@ const Graph =
   )
 
   .graphData(overviewData)
+
+  .backgroundColor("#050816")
 
   .nodeVal(nodeSize)
 
@@ -638,21 +644,11 @@ const Graph =
   /*
    * Cheap normal links.
    */
-  .linkOpacity(link => {
-    if (highlightLinks.has(link)) return 0.45;
+  .linkColor(link =>
+    linkIsSelected(link) ? "#56f0ff" : "#35415c"
+  )
 
-    if (isInvestigating()) {
-      const sourceId = endpointId(link.source);
-      const targetId = endpointId(link.target);
-      const direct = selectedNodeIds.has(sourceId) || selectedNodeIds.has(targetId);
-
-      // In investigation mode make the selected node's direct relationships
-      // clearly readable; keep 2-hop/internal context visible as well.
-      return direct ? 0.32 : 0.12;
-    }
-
-    return 0.05;
-  })
+  .linkOpacity(0.92)
 
   .linkWidth(link => {
     if (highlightLinks.has(link)) return 0.65;
@@ -791,9 +787,7 @@ Graph
  * --------------------------------------------------------- */
 
 function refreshHighlight() {
-  Graph
-    .linkVisibility(Graph.linkVisibility())
-    .linkOpacity(Graph.linkOpacity());
+  Graph.linkVisibility(Graph.linkVisibility());
 }
 
 function refreshNodeVisuals() {
@@ -807,7 +801,6 @@ let spriteDigestTimer = null;
 
 function refreshSelection() {
   refreshNodeVisuals();
-  Graph.linkOpacity(Graph.linkOpacity());
 
   if (currentRenderedNodeCount < LARGE_GRAPH_FORCE_THRESHOLD) {
     clearTimeout(spriteDigestTimer);
@@ -881,4 +874,3 @@ const nodeSearchInput = document.getElementById("node-search");
 const nodeList = document.getElementById("node-list");
 const nodeBrowserCount = document.getElementById("node-browser-count");
 const nodeRoleFilters = document.getElementById("node-role-filters");
-
