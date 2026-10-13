@@ -67,26 +67,28 @@ function baseColor(node) {
   switch (role(node)) {
 
     case "host":
-      return "#568aff";
+      return "#2bd9ff";
 
     case "certificate":
-      return "#a5d8ff";
+      return "#ff8a70";
 
     case "root_ca":
+      return "#ff5c49";
+
     case "intermediate_ca":
-      return "#ffbf55";
+      return "#ff8f6b";
 
     case "certificate_key":
     case "certificate_signature":
     case "key_exchange":
     case "symmetric":
-      return "#b18cff";
+      return "#d9a85e";
 
     case "service":
-      return "#35d9e8";
+      return "#a78bfa";
 
     default:
-      return "#999999";
+      return "#8b8fa3";
   }
 }
 
@@ -649,6 +651,8 @@ const Graph =
   )
 
   .linkOpacity(0.92)
+
+  .linkColor("#8891a6")
 
   .linkWidth(link => {
     if (highlightLinks.has(link)) return 0.65;
