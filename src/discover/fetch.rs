@@ -31,13 +31,12 @@ pub struct FetchOutcome {
 }
 
 pub async fn obtain(domain: &str, cfg: &Config, refresh: bool) -> Result<FetchOutcome, Error> {
-    let file = cache::cache_file(domain);
-
     if !refresh {
-        if let Some(snap) = cache::load_snapshot(&file) {
+        if let Some((file, snap)) = latest_snapshot(domain) {
             if let Some(age) = cache::age(&file).filter(|a| *a < cfg.cache_ttl) {
                 eprintln!(
-                    "CT: using cached snapshot for {domain} ({} min old, source {})",
+                    "CT: loading snapshot {} for {domain} ({} min old, source {})",
+                    file.display(),
                     age / 60,
                     snap.source
                 );
@@ -56,7 +55,7 @@ pub async fn obtain(domain: &str, cfg: &Config, refresh: bool) -> Result<FetchOu
             let certs = ct::certificates_from_db(&rows, Utc::now());
             if !certs.is_empty() {
                 let certs = attach_chains(domain, refresh, certs, cfg, &mut session).await;
-                store(&file, "db", &certs);
+                store(domain, "db", &certs);
                 return Ok(FetchOutcome {
                     certs,
                     provenance: Provenance::Fresh,
@@ -69,6 +68,8 @@ pub async fn obtain(domain: &str, cfg: &Config, refresh: bool) -> Result<FetchOu
         Err(e) => eprintln!("CT: falling back to crt.sh HTTP: {e}"),
     }
 
+    session.close();
+
     let owned = domain.to_string();
     let cfg_http = cfg.clone();
     let http = tokio::task::spawn_blocking(move || http_obtain(&owned, &cfg_http))
@@ -79,20 +80,24 @@ pub async fn obtain(domain: &str, cfg: &Config, refresh: bool) -> Result<FetchOu
             let rows = ct::parse_rows(&body).map_err(|e| Error::CtParse(e.to_string()))?;
             let certs = ct::certificates(&rows, Utc::now());
             if !certs.is_empty() {
-                store(&file, "http", &certs);
-                return Ok(FetchOutcome {
-                    certs,
-                    provenance: Provenance::Fresh,
-                    source: Some("http"),
-                });
+                store(domain, "http", &certs);
+            } else {
+                eprintln!("CT: crt.sh returned no certificates for {domain}");
             }
-            eprintln!("CT: crt.sh returned no usable certificates");
+            return Ok(FetchOutcome {
+                certs,
+                provenance: Provenance::Fresh,
+                source: Some("http"),
+            });
         }
         Err(e) => eprintln!("CT: {e}"),
     }
 
-    if let Some(snap) = cache::load_snapshot(&file) {
-        eprintln!("WARNING: CT sources unavailable; using stale cached snapshot");
+    if let Some((file, snap)) = latest_snapshot(domain) {
+        eprintln!(
+            "WARNING: CT sources unavailable; using stale snapshot {}",
+            file.display()
+        );
         return Ok(FetchOutcome {
             certs: ct::revive_certs(snap.certs, Utc::now()),
             provenance: Provenance::Stale {
@@ -102,6 +107,13 @@ pub async fn obtain(domain: &str, cfg: &Config, refresh: bool) -> Result<FetchOu
         });
     }
     Err(Error::NoCtData)
+}
+
+/// Newest cached CT snapshot for a domain, with the file it came from.
+fn latest_snapshot(domain: &str) -> Option<(std::path::PathBuf, cache::Snapshot)> {
+    let file = cache::latest_file(&cache::cache_dir(), domain)?;
+    let snap = cache::load_snapshot(&file)?;
+    Some((file, snap))
 }
 
 async fn attach_chains(
@@ -126,8 +138,8 @@ async fn attach_chains(
 
     if !refresh {
         if let Some(snap) = chain_cache::load(domain) {
-            if let Some(age) = chain_cache::age(domain).filter(|a| *a < cfg.cache_ttl) {
-                eprintln!("CT: using cached chains ({domain}, {} min old)", age / 60);
+            if chain_cache::age(domain).is_some_and(|a| a < cfg.cache_ttl) {
+                eprintln!("CT: using cached chains for {domain}");
                 for cert in certs.values_mut() {
                     if let Some(id) = cert.ct_ids.first() {
                         cert.chain = snap.chains.get(id).cloned().unwrap_or_default();
@@ -188,7 +200,10 @@ fn http_obtain(domain: &str, cfg: &Config) -> Result<String, Error> {
         match fetch_once(domain, cfg) {
             Ok(body) => match ct::parse_rows(&body) {
                 Ok(rows) if !rows.is_empty() => return Ok(body),
-                Ok(_) => eprintln!("CT: crt.sh returned an empty result; not caching"),
+                Ok(_) => {
+                    eprintln!("CT: crt.sh has no certificates for {domain}");
+                    return Ok(body);
+                }
                 Err(_) => eprintln!("CT: crt.sh returned invalid JSON"),
             },
             Err(FetchFailure::Status(code, retry_after)) => {
@@ -255,15 +270,15 @@ fn fetch_once(domain: &str, cfg: &Config) -> Result<String, FetchFailure> {
     Ok(body)
 }
 
-fn store(file: &std::path::Path, source: &str, certs: &BTreeMap<String, Certificate>) {
+fn store(domain: &str, source: &str, certs: &BTreeMap<String, Certificate>) {
     let snapshot = cache::Snapshot {
         version: cache::SNAPSHOT_VERSION,
         source: source.to_string(),
         fetched_at: Utc::now().to_rfc3339(),
         certs: certs.values().cloned().collect(),
     };
-    match cache::store_snapshot(file, &snapshot) {
-        Ok(()) => eprintln!("CT: snapshot cached (source {source}): {}", file.display()),
+    match cache::store_snapshot_for(domain, &snapshot) {
+        Ok(path) => eprintln!("CT: snapshot cached (source {source}): {}", path.display()),
         Err(e) => eprintln!("CT: caching failed: {e}"),
     }
 }

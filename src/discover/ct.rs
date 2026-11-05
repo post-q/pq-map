@@ -359,12 +359,18 @@ mod tests {
     fn coverage_follows_rfc_6125_single_label() {
         let idents = vec!["example.com".to_string(), "*.example.com".to_string()];
         assert_eq!(coverage(&idents, "example.com"), Some(MatchKind::Exact));
-        assert_eq!(coverage(&idents, "www.example.com"), Some(MatchKind::Wildcard));
+        assert_eq!(
+            coverage(&idents, "www.example.com"),
+            Some(MatchKind::Wildcard)
+        );
         assert_eq!(coverage(&idents, "a.b.example.com"), None);
         assert_eq!(coverage(&idents, "other.pl"), None);
 
         let deep = vec!["*.a.example.com".to_string()];
-        assert_eq!(coverage(&deep, "x.a.example.com"), Some(MatchKind::Wildcard));
+        assert_eq!(
+            coverage(&deep, "x.a.example.com"),
+            Some(MatchKind::Wildcard)
+        );
         assert_eq!(coverage(&deep, "a.example.com"), None);
         assert_eq!(coverage(&deep, "x.y.a.example.com"), None);
     }

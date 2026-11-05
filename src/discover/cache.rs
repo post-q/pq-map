@@ -2,6 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::model::Certificate;
@@ -34,8 +35,99 @@ pub fn cache_dir() -> PathBuf {
         .join("ct")
 }
 
-pub fn cache_file(domain: &str) -> PathBuf {
-    cache_dir().join(format!("{domain}.json"))
+/// UTC timestamp used in snapshot file names: `YYYYMMDDTHHMMSS.NNNNNNNNNZ`.
+/// Fixed width, so lexicographic order matches chronological order.
+pub fn timestamp_of(t: SystemTime) -> String {
+    let dt: DateTime<Utc> = t.into();
+    format!(
+        "{}.{:09}Z",
+        dt.format("%Y%m%dT%H%M%S"),
+        dt.timestamp_subsec_nanos()
+    )
+}
+
+pub fn timestamp_now() -> String {
+    timestamp_of(SystemTime::now())
+}
+
+/// True when a file stem follows the `YYYYMMDDTHHMMSS.NNNNNNNNNZ` layout.
+fn is_timestamp_name(stem: &str) -> bool {
+    let b = stem.as_bytes();
+    b.len() == 26
+        && b[8] == b'T'
+        && b[15] == b'.'
+        && b[25] == b'Z'
+        && b.iter()
+            .enumerate()
+            .all(|(i, c)| matches!(i, 8 | 15 | 25) || c.is_ascii_digit())
+}
+
+/// Path of the newest snapshot file for a domain, or None when none exists.
+///
+/// Snapshots are append-only: one directory per domain, one new timestamped
+/// file per store. Existing snapshot files are never rewritten or removed.
+pub fn latest_file(base: &Path, domain: &str) -> Option<PathBuf> {
+    let mut best: Option<(String, PathBuf)> = None;
+    for entry in fs::read_dir(base.join(domain)).ok()?.flatten() {
+        let path = entry.path();
+        if path.extension().and_then(|e| e.to_str()) != Some("json") || !path.is_file() {
+            continue;
+        }
+        let Some(stem) = path.file_stem().and_then(|s| s.to_str()) else {
+            continue;
+        };
+        if !is_timestamp_name(stem) {
+            continue;
+        }
+        if best
+            .as_ref()
+            .is_none_or(|(newest, _)| stem > newest.as_str())
+        {
+            best = Some((stem.to_string(), path));
+        }
+    }
+    best.map(|(_, path)| path)
+}
+
+/// Move a legacy flat `{domain}.json` cache file into the append-only layout
+/// as `{domain}/{timestamp}.json`. The file content is never touched; only
+/// its path changes. The snapshot timestamp comes from the file's mtime, so
+/// freshness is preserved. Idempotent: a no-op when no legacy file exists.
+pub fn migrate_legacy_file(base: &Path, domain: &str) {
+    let legacy = base.join(format!("{domain}.json"));
+    if !legacy.exists() {
+        return;
+    }
+    let ts = fs::metadata(&legacy)
+        .and_then(|m| m.modified())
+        .map(timestamp_of)
+        .unwrap_or_else(|_| timestamp_now());
+    let dir = base.join(domain);
+    if let Err(e) = fs::create_dir_all(&dir) {
+        eprintln!("cache: migration failed: {e}");
+        return;
+    }
+    let target = dir.join(format!("{ts}.json"));
+    if target.exists() {
+        eprintln!(
+            "cache: leaving legacy snapshot in place: {}",
+            legacy.display()
+        );
+        return;
+    }
+    match fs::rename(&legacy, &target) {
+        Ok(()) => eprintln!("cache: migrated snapshot to {}", target.display()),
+        Err(e) => eprintln!("cache: migration failed for {}: {e}", legacy.display()),
+    }
+}
+
+/// Write a new snapshot file into `base/{domain}/`; never touches existing ones.
+pub fn domain_store(base: &Path, domain: &str, body: &str) -> std::io::Result<PathBuf> {
+    let dir = base.join(domain);
+    fs::create_dir_all(&dir)?;
+    let path = dir.join(format!("{}.json", timestamp_now()));
+    store(&path, body)?;
+    Ok(path)
 }
 
 pub fn age(path: &Path) -> Option<u64> {
@@ -67,10 +159,13 @@ pub fn load_snapshot(path: &Path) -> Option<Snapshot> {
     (snap.version == SNAPSHOT_VERSION).then_some(snap)
 }
 
-pub fn store_snapshot(path: &Path, snapshot: &Snapshot) -> std::io::Result<()> {
+/// Serialize a CT snapshot into a fresh timestamped file. Any previous
+/// snapshots remain on disk untouched.
+pub fn store_snapshot_for(domain: &str, snapshot: &Snapshot) -> std::io::Result<PathBuf> {
+    migrate_legacy_file(&cache_dir(), domain);
     let body = serde_json::to_string_pretty(snapshot)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
-    store(path, &body)
+    domain_store(&cache_dir(), domain, &body)
 }
 
 pub fn store(path: &Path, body: &str) -> std::io::Result<()> {
@@ -142,7 +237,7 @@ mod tests {
     fn snapshot_roundtrip_preserves_facts() {
         let dir = std::env::temp_dir().join("pq-scope-cache-snap-test");
         fs::create_dir_all(&dir).unwrap();
-        let file = dir.join("roundtrip.example.com.json");
+        unsafe { std::env::set_var("CT_CACHE_DIR", &dir) };
         let mut cert = crate::model::Certificate {
             serial: "aa11".to_string(),
             in_ct: true,
@@ -171,15 +266,72 @@ mod tests {
             fetched_at: "2026-09-22T00:00:00Z".to_string(),
             certs: vec![cert],
         };
-        store_snapshot(&file, &snapshot).unwrap();
-        let loaded = load_snapshot(&file).unwrap();
+        let path = store_snapshot_for("roundtrip.example.com", &snapshot).unwrap();
+        let loaded = load_snapshot(&path).unwrap();
         assert_eq!(loaded.source, "db");
         assert_eq!(
             loaded.certs[0].cert_signature.as_deref(),
             Some("RSA-SHA256")
         );
         assert_eq!(loaded.certs[0].ct_ids, vec![7]);
-        fs::remove_file(&file).unwrap();
+        fs::remove_dir_all(&dir).unwrap();
+        unsafe { std::env::remove_var("CT_CACHE_DIR") };
+    }
+
+    #[test]
+    fn latest_file_prefers_newest_timestamp() {
+        let dir = std::env::temp_dir().join("pq-scope-cache-latest-test");
+        let domain = "latest.example.com";
+        let dom_dir = dir.join(domain);
+        fs::create_dir_all(&dom_dir).unwrap();
+        fs::write(dom_dir.join("20260101T000000.000000000Z.json"), "old").unwrap();
+        fs::write(dom_dir.join("20260102T000000.000000000Z.json"), "new").unwrap();
+        // Noise that must be ignored: partial writes and non-snapshot files.
+        fs::write(
+            dom_dir.join("20260103T000000.000000000Z.json.tmp.42"),
+            "junk",
+        )
+        .unwrap();
+        fs::write(dom_dir.join("notes.txt"), "x").unwrap();
+        let latest = latest_file(&dir, domain).unwrap();
+        assert_eq!(
+            latest.file_name().unwrap(),
+            "20260102T000000.000000000Z.json"
+        );
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn migrate_legacy_moves_flat_file_into_domain_dir() {
+        let dir = std::env::temp_dir().join("pq-scope-cache-migrate-test");
+        fs::create_dir_all(&dir).unwrap();
+        let domain = "migrate.example.com";
+        let legacy = dir.join(format!("{domain}.json"));
+        fs::write(&legacy, "{}").unwrap();
+        let old = SystemTime::UNIX_EPOCH + Duration::from_secs(1_700_000_000);
+        let f = File::options().write(true).open(&legacy).unwrap();
+        f.set_times(
+            std::fs::FileTimes::new()
+                .set_accessed(old)
+                .set_modified(old),
+        )
+        .unwrap();
+
+        migrate_legacy_file(&dir, domain);
+        assert!(!legacy.exists(), "legacy file moved, not copied");
+        let target = latest_file(&dir, domain).expect("migrated snapshot found");
+        assert_eq!(fs::read_to_string(&target).unwrap(), "{}");
+        // mtime preserved so freshness survives the rename.
+        assert!(age(&target).unwrap() > 10);
+
+        // Idempotent: no legacy file left, second run is a no-op.
+        migrate_legacy_file(&dir, domain);
+        assert_eq!(
+            latest_file(&dir, domain).unwrap(),
+            target,
+            "no new snapshot created"
+        );
+        fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]

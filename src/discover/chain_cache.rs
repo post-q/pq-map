@@ -36,18 +36,27 @@ fn cache_dir() -> PathBuf {
         .join("chain")
 }
 
-fn cache_file(domain: &str) -> PathBuf {
-    cache_dir().join(format!("{domain}.json"))
-}
-
 pub fn load(domain: &str) -> Option<Snapshot> {
-    let body = fs::read_to_string(cache_file(domain)).ok()?;
+    cache::migrate_legacy_file(&cache_dir(), domain);
+    let file = cache::latest_file(&cache_dir(), domain)?;
+    let body = fs::read_to_string(&file).ok()?;
     let snap: Snapshot = serde_json::from_str(&body).ok()?;
-    (snap.version == SNAPSHOT_VERSION).then_some(snap)
+    if snap.version != SNAPSHOT_VERSION {
+        return None;
+    }
+    match cache::age(&file) {
+        Some(age) => eprintln!(
+            "CT: loading chain snapshot {} ({domain}, {} min old)",
+            file.display(),
+            age / 60
+        ),
+        None => eprintln!("CT: loading chain snapshot {} ({domain})", file.display()),
+    }
+    Some(snap)
 }
 
 pub fn age(domain: &str) -> Option<u64> {
-    cache::age(&cache_file(domain))
+    cache::age(&cache::latest_file(&cache_dir(), domain)?)
 }
 
 pub fn store(domain: &str, chains: &BTreeMap<u64, Vec<ChainEntry>>) {
@@ -60,15 +69,9 @@ pub fn store(domain: &str, chains: &BTreeMap<u64, Vec<ChainEntry>>) {
         eprintln!("CT: chain caching failed: serialization error");
         return;
     };
-    let file = cache_file(domain);
-    if let Some(dir) = file.parent() {
-        if let Err(e) = fs::create_dir_all(dir) {
-            eprintln!("CT: chain caching failed: {e}");
-            return;
-        }
-    }
-    match cache::store(&file, &body) {
-        Ok(()) => eprintln!("CT: chain snapshot cached: {}", file.display()),
+    cache::migrate_legacy_file(&cache_dir(), domain);
+    match cache::domain_store(&cache_dir(), domain, &body) {
+        Ok(path) => eprintln!("CT: chain snapshot cached: {}", path.display()),
         Err(e) => eprintln!("CT: chain caching failed: {e}"),
     }
 }

@@ -168,7 +168,10 @@ mod tests {
 
     #[test]
     fn accepts_bare_hosts_and_ports() {
-        assert_eq!(normalize_domain("example.com").as_deref(), Some("example.com"));
+        assert_eq!(
+            normalize_domain("example.com").as_deref(),
+            Some("example.com")
+        );
         assert_eq!(
             normalize_domain("WWW.Example.COM.:8443").as_deref(),
             Some("example.com")

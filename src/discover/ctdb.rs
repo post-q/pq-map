@@ -221,6 +221,10 @@ impl Session {
         Ok(self.client.as_ref().unwrap())
     }
 
+    pub fn close(&mut self) {
+        self.hang_up();
+    }
+
     fn hang_up(&mut self) {
         if let Some(drive) = self.drive.take() {
             drive.abort();

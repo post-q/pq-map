@@ -38,14 +38,23 @@ fn cache_dir() -> PathBuf {
         .join("probe")
 }
 
-fn cache_file(domain: &str) -> PathBuf {
-    cache_dir().join(format!("{domain}.json"))
-}
-
 pub fn load(domain: &str) -> Option<Snapshot> {
-    let body = fs::read_to_string(cache_file(domain)).ok()?;
+    cache::migrate_legacy_file(&cache_dir(), domain);
+    let file = cache::latest_file(&cache_dir(), domain)?;
+    let body = fs::read_to_string(&file).ok()?;
     let snap: Snapshot = serde_json::from_str(&body).ok()?;
-    (snap.version == SNAPSHOT_VERSION).then_some(snap)
+    if snap.version != SNAPSHOT_VERSION {
+        return None;
+    }
+    match cache::age(&file) {
+        Some(age) => eprintln!(
+            "probes: loading snapshot {} ({} min old)",
+            file.display(),
+            age / 60
+        ),
+        None => eprintln!("probes: loading snapshot {}", file.display()),
+    }
+    Some(snap)
 }
 
 pub fn store(
@@ -63,15 +72,9 @@ pub fn store(
         eprintln!("probes: caching failed: serialization error");
         return;
     };
-    let file = cache_file(domain);
-    if let Some(dir) = file.parent() {
-        if let Err(e) = fs::create_dir_all(dir) {
-            eprintln!("probes: caching failed: {e}");
-            return;
-        }
-    }
-    match cache::store(&file, &body) {
-        Ok(()) => eprintln!("probes: snapshot cached: {}", file.display()),
+    cache::migrate_legacy_file(&cache_dir(), domain);
+    match cache::domain_store(&cache_dir(), domain, &body) {
+        Ok(path) => eprintln!("probes: snapshot cached: {}", path.display()),
         Err(e) => eprintln!("probes: caching failed: {e}"),
     }
 }

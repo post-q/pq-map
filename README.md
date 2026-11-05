@@ -35,6 +35,8 @@ pq-map example.com --ports        # discover other services (smtp/imap/...) on h
 
 Caches in `~/.cache/pq-map/`: CT 30 days, probes 24 hours. DNS resolves every run and invalidates cached probes; failed probes are cached too. `--refresh` bypasses both.
 
+Cache files are append-only snapshots: each store writes a new timestamped file (`~/.cache/pq-map/<ct|probe|chain>/<domain>/<UTC timestamp>.json`) and reads the newest one. Snapshot files are never rewritten, removed, or pruned, so they accumulate as a per-domain history.
+
 ## Visualization
 
 ```

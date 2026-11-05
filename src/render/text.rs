@@ -350,7 +350,10 @@ mod tests {
         let state = fixture();
         let text = combined(&state);
         let lines: Vec<&str> = text.lines().collect();
-        let apex = lines.iter().position(|l| l.starts_with("example.com ")).unwrap();
+        let apex = lines
+            .iter()
+            .position(|l| l.starts_with("example.com "))
+            .unwrap();
         let www = lines
             .iter()
             .position(|l| l.starts_with("www.example.com "))
