@@ -1,5 +1,5 @@
 # Changelog
-## 0.2.2 - 2026-10-12
+## 0.2.3 - 2026-11-06
 
 ### Bug Fixes
 - Clippy
@@ -8,6 +8,7 @@
 - Normalize domain
 - Reuse the same conn
 - Smooth rotation
+- Tweak graph color palette
 
 ### Documentation
 - Add
@@ -26,6 +27,7 @@
 - Adds right nav bar with search/filtering
 - Refine pq-graph
 - Add blurring and 'clean mode' toggles
+- Permanent cache feat
 
 ### Miscellaneous Tasks
 - Initial commit
@@ -37,6 +39,7 @@
 - Update README.md
 - Release pq-map version 0.2.1
 - Release pq-map version 0.2.2
+- Release pq-map version 0.2.3
 
 ### Other
 - Align with Rust 1.91
