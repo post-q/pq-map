@@ -1,3 +1,6 @@
+## Repo moved into https://github.com/post-q/pq-intel/tree/main/apps/pq-map
+
+
 # pq-map
 
 Discovery and mapping of externally visible cryptographic infrastructure using open source intelligence.
